@@ -1,2 +1,3 @@
 # precision-pass-course
-something
+A short walkthrough about how the precision-pass project works
+
