@@ -1,0 +1,151 @@
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Finding A Face Rectangle</h1>
+      <p class="module-subtitle">OpenCV does not know names yet. First it searches the image for face-shaped regions.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Detection is the inspection station</h2>
+      <p>The project uses a Haar cascade file, <code>CV/haar_face.xml</code>, as a prebuilt face detector. A <span class="term" data-definition="A classifier is code or data that decides which category something belongs to, such as face versus not-face.">classifier</span> scans the grayscale image and returns rectangles.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">CV</span><span class="ft-desc">Computer vision backend package</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">haar_face.xml</span><span class="ft-desc">Pretrained frontal face detector</span></div>
+            <div class="ft-file"><span class="ft-name">vision.py</span><span class="ft-desc">Loads the detector and calls detectMultiScale</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>CV/vision.py:35-50</code> and <code>CV/vision.py:218-227</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The detector is loaded once</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def create_vision_state() -&gt; VisionState:
+    cascade_path = Path(__file__).resolve().parent / "haar_face.xml"
+    face_cascade = cv2.CascadeClassifier(str(cascade_path))
+    if face_cascade.empty():
+        raise RuntimeError(f"Failed to load Haar cascade from {cascade_path}")</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Build the path to the XML detector next to <code>vision.py</code>.</p>
+      <p class="tl">Ask OpenCV to load that detector into memory.</p>
+      <p class="tl">Fail early if the XML file is missing or invalid.</p>
+      <p class="tl">This runs during backend startup, before users upload frames.</p>
+      <p class="tl">File reference: <code>CV/vision.py:35-39</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The face box is normalized for the frontend</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def detect_faces(state: VisionState, frame: np.ndarray) -&gt; list[tuple[int, int, int, int]]:
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = state.face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5)
+    return [(int(x), int(y), int(width), int(height)) for (x, y, width, height) in faces]</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Accept one decoded image frame.</p>
+      <p class="tl">Convert it to grayscale because the detector works on light/dark patterns.</p>
+      <p class="tl">Scan for face-like rectangles using OpenCV.</p>
+      <p class="tl">Return plain integer boxes: x, y, width, height.</p>
+      <p class="tl">File reference: <code>CV/vision.py:218-221</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">UI</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why ratios matter</strong>
+          <p>The backend later converts pixel boxes into percentages. That lets <code>CameraFeed</code> draw overlays correctly even when the video is resized in the browser.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-3">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. &lt;code&gt;create_vision_state&lt;/code&gt; loads &lt;code&gt;CV/haar_face.xml&lt;/code&gt; at startup."
+       data-explanation-wrong="The face detector is an XML file loaded by OpenCV, not a React component.">
+    <h3 class="quiz-question">The backend starts failing with a message about the Haar cascade. Which file is the likely missing dependency?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>components/ui/button.tsx</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/haar_face.xml</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data/leaves.json</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The backend returns ratios and the frontend multiplies them into CSS percentages."
+       data-explanation-wrong="This is most likely a coordinate conversion or overlay issue.">
+    <h3 class="quiz-question">A face is detected but the box appears in the wrong place on screen. Which concept should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Pixel-to-ratio conversion and overlay CSS in <code>CameraFeed</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The monthly payroll query.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee delete confirmation.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. The detector is looking for contrast patterns, so color is unnecessary."
+       data-explanation-wrong="Grayscale is used because the chosen detector works on light and dark pattern features.">
+    <h3 class="quiz-question">Why convert the frame to grayscale before detection?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because JPEG files cannot store color.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because FastAPI only accepts black and white uploads.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the Haar cascade scans light and dark patterns, not identity colors.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-3')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-3')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

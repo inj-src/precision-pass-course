@@ -1,0 +1,211 @@
+<section class="module" id="module-1">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">The Face Pipeline</h1>
+      <p class="module-subtitle">A browser camera frame becomes a face box, a name, and sometimes an attendance record.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Start with the user action</h2>
+      <p>Imagine the live monitor as a checkpoint camera. The <span class="term" data-definition="The frontend is the part of the app that runs in the browser and shows screens, buttons, video, and tables to the user.">frontend</span> captures one still image, sends it to the <span class="term" data-definition="The backend is the server-side part of the app that receives requests, runs business logic, and stores data.">backend</span>, and waits for a result.</p>
+      <p>The key route is <code>POST /recognition/frame</code>. The main files are <code>app/live-monitor/page.tsx:116-144</code>, <code>lib/video-frame.ts:1-35</code>, <code>lib/cv-api.ts:215-222</code>, and <code>CV/vision.py:117-205</code>.</p>
+      <div class="flow-animation animate-in" data-steps='[{"highlight":"flow-actor-1","label":"The live monitor waits for the camera to be ready."},{"highlight":"flow-actor-2","label":"The browser draws the video into a canvas and turns it into JPEG bytes.","packet":true,"from":"actor-1","to":"actor-2"},{"highlight":"flow-actor-3","label":"The JPEG is posted to the recognition endpoint.","packet":true,"from":"actor-2","to":"actor-3"},{"highlight":"flow-actor-4","label":"The CV layer finds faces and compares them to enrolled samples.","packet":true,"from":"actor-3","to":"actor-4"},{"highlight":"flow-actor-5","label":"If it is a first match for the day, attendance is written.","packet":true,"from":"actor-4","to":"actor-5"}]'>
+  <div class="flow-actors">
+    <div class="flow-actor" id="flow-actor-1">
+      <div class="flow-actor-icon">UI</div>
+      <span>Live monitor</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-2">
+      <div class="flow-actor-icon">JPG</div>
+      <span>Frame blob</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-3">
+      <div class="flow-actor-icon">API</div>
+      <span>FastAPI route</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-4">
+      <div class="flow-actor-icon">CV</div>
+      <span>OpenCV + KNN</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-5">
+      <div class="flow-actor-icon">ATT</div>
+      <span>Attendance JSON</span>
+    </div>
+  </div>
+  <div class="flow-packet" id="flow-packet"></div>
+  <div class="flow-step-label" id="flow-label">Click Next Step to walk through the path</div>
+  <div class="flow-controls">
+    <button class="btn flow-next-btn">Next Step</button>
+    <button class="btn flow-reset-btn">Restart</button>
+    <span class="flow-progress"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The browser sends one picture at a time</h2>
+      <p>The loop is deliberately small. It sends a frame every 500 milliseconds, but uses a <span class="term" data-definition="A ref is a React object that can hold a value without forcing the screen to rerender. Here it remembers whether recognition is already running.">ref</span> to avoid overlapping requests.</p>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const interval = window.setInterval(async () =&gt; {
+  if (analysisInFlightRef.current || !videoRef.current || document.hidden) {
+    return;
+  }
+  analysisInFlightRef.current = true;
+  setAnalyzing(true);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl"><code>setInterval</code> creates the repeating heartbeat for live recognition.</p>
+      <p class="tl">If another request is still running, if video is missing, or if the tab is hidden, the function exits.</p>
+      <p class="tl">That prevents a pileup of slow recognition requests.</p>
+      <p class="tl">The page marks analysis as active so the UI can show activity.</p>
+      <p class="tl">File reference: <code>app/live-monitor/page.tsx:116-123</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">AI</div>
+        <div class="callout-content">
+          <strong class="callout-title">Steering tip</strong>
+          <p>If you ask an AI assistant to make recognition faster, mention this exact loop. The safe target is interval timing, image size, or backend speed, not launching many parallel requests.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Checkpoint conversation</h2>
+      <p>This is the mental model you should keep when explaining the feature to someone else.</p>
+      <div class="chat-window animate-in" id="chat-face-pipeline">
+  <div class="chat-messages">
+    <div class="chat-message" data-msg="0" data-sender="Live Monitor" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-1)">UI</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-1)">Live Monitor</span>
+        <p>I have camera access. Every half second I can capture a still frame.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="1" data-sender="Video Helper" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-2)">JPG</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-2)">Video Helper</span>
+        <p>I will draw the video frame to a canvas and compress it as JPEG.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="2" data-sender="API Client" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-3)">API</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-3)">API Client</span>
+        <p>I will wrap that JPEG in FormData and post it to /recognition/frame.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="3" data-sender="Vision Layer" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-4)">CV</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-4)">Vision Layer</span>
+        <p>I will find faces, compare them with samples, and return boxes and names.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="4" data-sender="Dashboard" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-5)">ATT</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-5)">Dashboard</span>
+        <p>If a first check-in was recorded, I can show the employee as present or late.</p>
+      </div>
+    </div>
+  </div>
+  <div class="chat-typing" id="chat-face-pipeline-typing" style="display:none">
+    <div class="chat-avatar" id="chat-face-pipeline-typing-avatar">?</div>
+    <div class="chat-typing-dots">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+  </div>
+  <div class="chat-controls">
+    <button class="btn chat-next-btn">Next Message</button>
+    <button class="btn chat-all-btn">Play All</button>
+    <button class="btn chat-reset-btn">Replay</button>
+    <span class="chat-progress"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-1">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. Start where repeated frames are scheduled and where in-flight requests are guarded."
+       data-explanation-wrong="Not quite. The symptom begins before the backend writes events: the browser might be sending too many frames.">
+    <h3 class="quiz-question">The live monitor starts showing duplicated recognition events. Where should you inspect first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/live-monitor/page.tsx</code>, especially the 500 ms interval and <code>analysisInFlightRef</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/payroll/page.tsx</code>, because payroll totals are later affected.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data/leaves.json</code>, because leave data changes attendance.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The code explicitly checks &lt;code&gt;document.hidden&lt;/code&gt; before sending a frame."
+       data-explanation-wrong="Look for the browser-side guard. It is not a backend failure.">
+    <h3 class="quiz-question">A user asks why recognition pauses when the tab is hidden. What is the best explanation?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>FastAPI rejects hidden tabs automatically.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The frontend skips capture while <code>document.hidden</code> is true.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>OpenCV cannot decode images from a hidden camera.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. Larger or higher-quality JPEGs preserve more face detail but cost more network and CPU time."
+       data-explanation-wrong="The tradeoff is in the frame capture options, not the sidebar or payroll UI.">
+    <h3 class="quiz-question">If you want more accurate recognition but slower uploads, which setting would you consider?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Change the sidebar route order.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Reduce payroll month length.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Increase <code>maxWidth</code> or <code>quality</code> in <code>captureVideoFrame</code> calls.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-1')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-1')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

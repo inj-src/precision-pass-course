@@ -1,0 +1,155 @@
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Face Registration Screen</h1>
+      <p class="module-subtitle">This page is a two-step workflow: save employee details, then collect face samples.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Registration is a guided setup wizard</h2>
+      <p>The page has local <span class="term" data-definition="React state is data remembered by a component. When state changes, React rerenders the screen to show the new value.">state</span> for form fields, camera status, saved employee, enrollment result, and error messages.</p>
+      <div class="badge-list animate-in">
+        <div class="badge-item"><code class="badge-code">Step 1</code><span class="badge-desc">Collect name, department, wage, and schedule.</span></div>
+        <div class="badge-item"><code class="badge-code">Step 2</code><span class="badge-desc">Start camera and capture 18 face samples.</span></div>
+        <div class="badge-item"><code class="badge-code">Complete</code><span class="badge-desc">Enable completion only after samples exist.</span></div>
+      </div>
+      <p>File references: <code>app/face-registration/page.tsx:41-88</code>, <code>app/face-registration/page.tsx:128-191</code>, <code>app/face-registration/page.tsx:193-540</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Saving details chooses create or update</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const savedEmployee = employee
+  ? await updateEmployee(employee.id, {
+      fullName: payload.fullName,
+      department: payload.department,
+      monthlyWage: payload.monthlyWage,
+      schedule: payload.schedule,
+    })
+  : await createEmployee(payload);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">If an employee record already exists, update it.</p>
+      <p class="tl">Send only the fields the backend allows for updates.</p>
+      <p class="tl">If this is a new registration, create the employee.</p>
+      <p class="tl">Store the returned employee record for step two.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:144-151</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Camera access is cleaned up</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">React.useEffect(() =&gt; {
+  return () =&gt; {
+    const stream = videoRef.current?.srcObject;
+    if (stream instanceof MediaStream) {
+      stream.getTracks().forEach((track) =&gt; track.stop());
+    }
+  };
+}, []);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Register cleanup code for when the page leaves the screen.</p>
+      <p class="tl">Find the camera stream attached to the video element.</p>
+      <p class="tl">Confirm it is a real media stream.</p>
+      <p class="tl">Stop every camera track so the webcam is released.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:81-88</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">UX</div>
+        <div class="callout-content">
+          <strong class="callout-title">User trust detail</strong>
+          <p>Stopping media tracks matters. It prevents the camera indicator from staying on after the user leaves the page.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-3">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Completion depends on the saved employee having &lt;code&gt;sampleCount &amp;gt; 0&lt;/code&gt;."
+       data-explanation-wrong="The button depends on enrollment samples, not route metadata.">
+    <h3 class="quiz-question">The Complete Registration button stays disabled. Which state should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>hasEnrollmentSamples</code> and <code>employee.sampleCount</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_ALLOWED_ORIGINS</code> only.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The payroll month input.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Exactly. The form, payload, TypeScript type, and backend contract must all agree."
+       data-explanation-wrong="A cross-boundary field needs updates in both frontend and backend contracts.">
+    <h3 class="quiz-question">You add a new employee field to registration. What must be updated together?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the form label.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>CV/haar_face.xml</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Form state, payload creation, <code>cv-api.ts</code> type, and server model.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Yes. Camera cleanup should stop every &lt;code&gt;MediaStreamTrack&lt;/code&gt; on unmount."
+       data-explanation-wrong="The webcam is controlled by the browser media stream, not payroll or JSON files.">
+    <h3 class="quiz-question">The camera light stays on after navigation. Which code pattern should you verify?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Monthly payroll refresh.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>stream.getTracks().forEach(track =&gt; track.stop())</code> cleanup.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee delete confirmation text.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-3')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-3')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

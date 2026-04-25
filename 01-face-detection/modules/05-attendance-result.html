@@ -1,0 +1,148 @@
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">From Match To Attendance</h1>
+      <p class="module-subtitle">The final face-detection result becomes operational data: present, late, seen, or unknown.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">A match can create a daily check-in</h2>
+      <p>Recognition is not just a label on screen. If the match is valid and no attendance exists for that employee today, the backend writes a record to <code>CV/data/attendance.json</code>.</p>
+      <div class="badge-list animate-in">
+        <div class="badge-item"><code class="badge-code">present</code><span class="badge-desc">Detected at or before scheduled check-in.</span></div>
+        <div class="badge-item"><code class="badge-code">late</code><span class="badge-desc">Detected after scheduled check-in.</span></div>
+        <div class="badge-item"><code class="badge-code">seen</code><span class="badge-desc">Recognized again, but attendance was already recorded today.</span></div>
+        <div class="badge-item"><code class="badge-code">unknown</code><span class="badge-desc">A face was found, but no confident employee match was accepted.</span></div>
+      </div>
+      <p>File references: <code>CV/vision.py:172-200</code>, <code>CV/data.py:258-286</code>, <code>components/live-monitor/recognition-feed.tsx:41-107</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">First check-in wins</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">already_recorded = any(
+    record["id"] == employee["id"] and record["date"] == target_date
+    for record in attendance_records
+)
+if already_recorded:
+    return None</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Look through existing attendance rows.</p>
+      <p class="tl">Find any row with the same employee ID and the same date.</p>
+      <p class="tl">If one exists, stop and return nothing.</p>
+      <p class="tl">This prevents duplicate check-ins for one person on one day.</p>
+      <p class="tl">File reference: <code>CV/data.py:267-273</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The UI shows both detection and business meaning</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-tsx">&lt;Badge variant={recognition.attendanceStatus === "late" ? "destructive" : "secondary"}&gt;
+  {recognition.attendanceRecorded ? recognition.attendanceStatus : "seen"}
+&lt;/Badge&gt;</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Choose a stronger badge style when the recognition is late.</p>
+      <p class="tl">If the backend created attendance now, show present or late.</p>
+      <p class="tl">If the employee was already recorded today, show seen instead.</p>
+      <p class="tl">File reference: <code>components/live-monitor/recognition-feed.tsx:103-106</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">OPS</div>
+        <div class="callout-content">
+          <strong class="callout-title">Business rule boundary</strong>
+          <p>The backend owns whether attendance is recorded. The frontend only displays the decision. That is why refreshing the UI does not create duplicate attendance.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-5">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The backend recognized them, but no new attendance row was created."
+       data-explanation-wrong="Seen means recognition happened without creating a fresh attendance record.">
+    <h3 class="quiz-question">A recognized employee shows as seen instead of present. What does that mean?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee was unknown.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee already had an attendance record for the day.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee is missing from the sidebar.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. &lt;code&gt;record_attendance_if_first&lt;/code&gt; is the duplicate-prevention function."
+       data-explanation-wrong="The rule is in the data layer function that writes attendance, not only in visual components.">
+    <h3 class="quiz-question">If attendance duplicates appear for the same employee and date, where is the business rule?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data.py:258-286</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>components/ui/badge.tsx</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/layout.tsx</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. It keeps the official attendance decision next to the write operation."
+       data-explanation-wrong="The status is business data, so the backend is the correct source of truth.">
+    <h3 class="quiz-question">Why compute present versus late on the backend?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because React cannot compare times.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because CSS badges require Python.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the server is the source of truth for attendance records.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-5')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-5')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

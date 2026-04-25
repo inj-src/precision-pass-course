@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course 3: How The Frontend Works</title>
+
+  <!-- Google Fonts: Bricolage Grotesque · DM Sans · JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <!--
+    CUSTOMIZE PER COURSE — change only the three accent variables below.
+    Options:
+      vermillion  #D94F30 / #C4432A / #FDEEE9 / #E8836C  (default)
+      coral       #E06B56 / #C85A47 / #FDECEA / #E89585
+      teal        #2A7B9B / #1F6280 / #E4F2F7 / #5A9DB8
+      amber       #D4A843 / #BF9530 / #FDF5E0 / #E0C070
+      forest      #2D8B55 / #226B41 / #E8F5EE / #5AAD7A
+  -->
+  <style>
+    :root {
+      --color-accent:       #E06B56;
+      --color-accent-hover: #C85A47;
+      --color-accent-light: #FDECEA;
+      --color-accent-muted: #E89585;
+    }
+    .translation-code .hljs {
+      background: transparent;
+      padding: 0;
+    }
+    .translation-block {
+      grid-template-columns: 1fr;
+    }
+    .translation-english {
+      border-left: 0;
+      border-top: 3px solid var(--color-accent);
+    }
+    .course-switcher {
+      max-width: var(--content-width-wide);
+      margin: var(--space-12) auto var(--space-16);
+      padding: var(--space-6);
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+    .course-switch-link {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 96px;
+      padding: var(--space-5);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text);
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--duration-fast) var(--ease-out), border-color var(--duration-fast), box-shadow var(--duration-fast);
+    }
+    .course-switch-link:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-accent-muted);
+      box-shadow: var(--shadow-md);
+    }
+    .course-switch-link.next { text-align: right; }
+    .course-switch-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-2);
+    }
+    .course-switch-title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      line-height: var(--leading-snug);
+    }
+    @media (max-width: 768px) {
+      .course-switcher { grid-template-columns: 1fr; }
+      .course-switch-link.next { text-align: left; }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/typescript.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/python.min.js" defer></script>
+  <script src="main.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.hljs) {
+        window.hljs.highlightAll();
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">Course 3: How The Frontend Works</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="App Shell" role="tab" aria-label="Module 1: App Shell"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="API Client" role="tab" aria-label="Module 2: API Client"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="Registration UI" role="tab" aria-label="Module 3: Registration UI"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="Live Monitor" role="tab" aria-label="Module 4: Live Monitor"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="Ops Screens" role="tab" aria-label="Module 5: Ops Screens"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- modules/*.html content is assembled here by build.sh -->
+<section class="module" id="module-1">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">The Frontend App Shell</h1>
+      <p class="module-subtitle">The Next.js app is organized as route folders, shared layouts, and reusable UI components.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">The frontend is the control panel</h2>
+      <p>The project uses <span class="term" data-definition="Next.js is a React framework that uses files and folders to define web pages, routes, layouts, and build behavior.">Next.js</span> with the App Router. Each page folder under <code>app/</code> becomes a route, and most operational routes wrap themselves in the shared sidebar layout.</p>
+      <div class="flow-animation animate-in" data-steps='[{"highlight":"flow-actor-1","label":"The root page redirects users to the dashboard."},{"highlight":"flow-actor-2","label":"Each section layout wraps the page with AppLayout.","packet":true,"from":"actor-1","to":"actor-2"},{"highlight":"flow-actor-3","label":"AppLayout renders the sidebar navigation.","packet":true,"from":"actor-2","to":"actor-3"},{"highlight":"flow-actor-4","label":"The active page renders its screen content.","packet":true,"from":"actor-2","to":"actor-4"},{"highlight":"flow-actor-5","label":"Reusable UI components provide buttons, cards, tables, dialogs, and badges.","packet":true,"from":"actor-4","to":"actor-5"}]'>
+  <div class="flow-actors">
+    <div class="flow-actor" id="flow-actor-1">
+      <div class="flow-actor-icon">/</div>
+      <span>app/page.tsx</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-2">
+      <div class="flow-actor-icon">LAY</div>
+      <span>Route layout</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-3">
+      <div class="flow-actor-icon">SIDE</div>
+      <span>AppSidebar</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-4">
+      <div class="flow-actor-icon">PAGE</div>
+      <span>Page component</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-5">
+      <div class="flow-actor-icon">UI</div>
+      <span>shadcn UI</span>
+    </div>
+  </div>
+  <div class="flow-packet" id="flow-packet"></div>
+  <div class="flow-step-label" id="flow-label">Click Next Step to walk through the path</div>
+  <div class="flow-controls">
+    <button class="btn flow-next-btn">Next Step</button>
+    <button class="btn flow-reset-btn">Restart</button>
+    <span class="flow-progress"></span>
+  </div>
+</div>
+      <p>File references: <code>app/page.tsx:1-5</code>, <code>app/dashboard/layout.tsx:1-9</code>, <code>components/layout/app-layout.tsx:12-22</code>, <code>components/layout/app-sidebar.tsx:52-103</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Layouts make navigation consistent</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-tsx">export function AppLayout({ children }: AppLayoutProps) {
+  return (
+    &lt;SidebarProvider&gt;
+      &lt;AppSidebar /&gt;
+      &lt;SidebarInset&gt;
+        &lt;div className="flex flex-col h-full min-h-screen"&gt;
+          {children}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Define the wrapper used by the main app sections.</p>
+      <p class="tl">Set up sidebar state for desktop and mobile behavior.</p>
+      <p class="tl">Render the navigation once.</p>
+      <p class="tl">Place the current route's page inside the content area.</p>
+      <p class="tl">File reference: <code>components/layout/app-layout.tsx:12-18</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The app shell conversation</h2>
+      <div class="chat-window animate-in" id="chat-frontend-shell">
+  <div class="chat-messages">
+    <div class="chat-message" data-msg="0" data-sender="Root Page" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-1)">/</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-1)">Root Page</span>
+        <p>I send visitors straight to /dashboard.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="1" data-sender="Route Layout" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-2)">LAY</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-2)">Route Layout</span>
+        <p>I wrap dashboard, monitor, employees, leave, payroll, and face registration with the same shell.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="2" data-sender="Sidebar" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-3)">NAV</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-3)">Sidebar</span>
+        <p>I know the navigation items and highlight the active route.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="3" data-sender="Page" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-4)">PG</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-4)">Page</span>
+        <p>I focus on one workflow, like attendance, employee editing, or live monitoring.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="4" data-sender="UI Kit" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-5)">UI</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-5)">UI Kit</span>
+        <p>I provide consistent cards, buttons, dialogs, tables, and badges.</p>
+      </div>
+    </div>
+  </div>
+  <div class="chat-typing" id="chat-frontend-shell-typing" style="display:none">
+    <div class="chat-avatar" id="chat-frontend-shell-typing-avatar">?</div>
+    <div class="chat-typing-dots">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+  </div>
+  <div class="chat-controls">
+    <button class="btn chat-next-btn">Next Message</button>
+    <button class="btn chat-all-btn">Play All</button>
+    <button class="btn chat-reset-btn">Replay</button>
+    <span class="chat-progress"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-1">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. Sidebar route items are centralized in &lt;code&gt;mainNavItems&lt;/code&gt;."
+       data-explanation-wrong="Navigation labels live in the sidebar component, not each route page.">
+    <h3 class="quiz-question">You add a new Reports page. Where should the navigation item go?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data.py</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>components/layout/app-sidebar.tsx</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/requirements.txt</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Yes. They wrap each page with &lt;code&gt;AppLayout&lt;/code&gt; so the shell stays consistent."
+       data-explanation-wrong="The layout files are for wrapping route content, not API calls.">
+    <h3 class="quiz-question">Why do route folders have small <code>layout.tsx</code> files?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To reuse the shared sidebar layout around that page.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To retrain the face model.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To save attendance JSON.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Exactly. Check that the route has a layout returning &lt;code&gt;&amp;lt;AppLayout&amp;gt;{children}&amp;lt;/AppLayout&amp;gt;&lt;/code&gt;."
+       data-explanation-wrong="A missing shared route layout is the likely cause.">
+    <h3 class="quiz-question">A page appears without the sidebar. What is the likely missing file or wrapper?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The OpenCV Haar XML.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The payroll daily rate.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>A route <code>layout.tsx</code> that uses <code>AppLayout</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-1')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-1')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">The API Client Gateway</h1>
+      <p class="module-subtitle">The frontend does not scatter raw fetch calls everywhere. It centralizes backend access in lib/cv-api.ts.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">The API client is the phonebook</h2>
+      <p>Pages call named functions like <code>getEmployees</code> and <code>recognizeFrame</code>. Those functions hide URL building, <span class="term" data-definition="HTTP is the request-response protocol browsers use to talk to servers. Methods like GET, POST, PATCH, and DELETE describe the kind of action.">HTTP</span> methods, error handling, and response typing.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">lib</span><span class="ft-desc">Frontend helpers</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">cv-api.ts</span><span class="ft-desc">TypeScript types and all backend request helpers</span></div>
+            <div class="ft-file"><span class="ft-name">video-frame.ts</span><span class="ft-desc">Turns video into JPEG blobs for upload</span></div>
+            <div class="ft-file"><span class="ft-name">utils.ts</span><span class="ft-desc">Class-name merging helper used by UI components</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>lib/cv-api.ts:1-130</code>, <code>lib/cv-api.ts:132-163</code>, <code>lib/cv-api.ts:165-260</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">One request helper handles errors</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">async function request&lt;T&gt;(path: string, init?: RequestInit): Promise&lt;T&gt; {
+  const response = await fetch(apiUrl(path), {
+    ...init,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Make a reusable typed request function.</p>
+      <p class="tl">Call <code>fetch</code> with the full backend URL.</p>
+      <p class="tl">Include caller-provided method, headers, and body.</p>
+      <p class="tl">Disable browser caching for live operational data.</p>
+      <p class="tl">If the server says the request failed, enter the error path.</p>
+      <p class="tl">File reference: <code>lib/cv-api.ts:139-145</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Camera uploads use FormData</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">export async function recognizeFrame(frame: Blob): Promise&lt;RecognitionFrameResponse&gt; {
+  const formData = new FormData();
+  formData.append("frame", frame, "frame.jpg");
+  return request&lt;RecognitionFrameResponse&gt;("/recognition/frame", {
+    method: "POST",
+    body: formData,
+  });
+}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Expose a frontend function specifically for one recognition frame.</p>
+      <p class="tl">Create a browser form body that can carry a file.</p>
+      <p class="tl">Attach the image as the field name the backend expects: <code>frame</code>.</p>
+      <p class="tl">POST that form to the recognition endpoint.</p>
+      <p class="tl">Return the typed detection and attendance response.</p>
+      <p class="tl">File reference: <code>lib/cv-api.ts:215-222</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">TYPE</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why TypeScript interfaces matter</strong>
+          <p>The interfaces at the top of <code>cv-api.ts</code> mirror the server's response models. When a field changes, update both sides together.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-2">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The shared &lt;code&gt;request&lt;/code&gt; helper parses error details from failed responses."
+       data-explanation-wrong="Error parsing is centralized in the API request helper.">
+    <h3 class="quiz-question">A server error message is not showing in the UI. Which helper should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/haar_face.xml</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>request&lt;T&gt;</code> in <code>lib/cv-api.ts</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/favicon.ico</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The frontend &lt;code&gt;FormData.append&lt;/code&gt; field name must match the server parameter."
+       data-explanation-wrong="Upload field names are part of the API contract.">
+    <h3 class="quiz-question">You rename the backend upload field from <code>frame</code> to <code>image</code>. What else must change?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>formData.append(&quot;frame&quot;, ...)</code> in <code>recognizeFrame</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the dashboard table labels.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only payroll daily rate math.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. Attendance, recognition, and employee data can change during the session."
+       data-explanation-wrong="These screens need fresh operational data, not cached old responses.">
+    <h3 class="quiz-question">Why is <code>cache: &quot;no-store&quot;</code> appropriate here?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It makes CSS compile faster.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It trains the KNN model.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It prevents stale backend responses on live data screens.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-2')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-2')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Face Registration Screen</h1>
+      <p class="module-subtitle">This page is a two-step workflow: save employee details, then collect face samples.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Registration is a guided setup wizard</h2>
+      <p>The page has local <span class="term" data-definition="React state is data remembered by a component. When state changes, React rerenders the screen to show the new value.">state</span> for form fields, camera status, saved employee, enrollment result, and error messages.</p>
+      <div class="badge-list animate-in">
+        <div class="badge-item"><code class="badge-code">Step 1</code><span class="badge-desc">Collect name, department, wage, and schedule.</span></div>
+        <div class="badge-item"><code class="badge-code">Step 2</code><span class="badge-desc">Start camera and capture 18 face samples.</span></div>
+        <div class="badge-item"><code class="badge-code">Complete</code><span class="badge-desc">Enable completion only after samples exist.</span></div>
+      </div>
+      <p>File references: <code>app/face-registration/page.tsx:41-88</code>, <code>app/face-registration/page.tsx:128-191</code>, <code>app/face-registration/page.tsx:193-540</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Saving details chooses create or update</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const savedEmployee = employee
+  ? await updateEmployee(employee.id, {
+      fullName: payload.fullName,
+      department: payload.department,
+      monthlyWage: payload.monthlyWage,
+      schedule: payload.schedule,
+    })
+  : await createEmployee(payload);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">If an employee record already exists, update it.</p>
+      <p class="tl">Send only the fields the backend allows for updates.</p>
+      <p class="tl">If this is a new registration, create the employee.</p>
+      <p class="tl">Store the returned employee record for step two.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:144-151</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Camera access is cleaned up</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">React.useEffect(() =&gt; {
+  return () =&gt; {
+    const stream = videoRef.current?.srcObject;
+    if (stream instanceof MediaStream) {
+      stream.getTracks().forEach((track) =&gt; track.stop());
+    }
+  };
+}, []);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Register cleanup code for when the page leaves the screen.</p>
+      <p class="tl">Find the camera stream attached to the video element.</p>
+      <p class="tl">Confirm it is a real media stream.</p>
+      <p class="tl">Stop every camera track so the webcam is released.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:81-88</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">UX</div>
+        <div class="callout-content">
+          <strong class="callout-title">User trust detail</strong>
+          <p>Stopping media tracks matters. It prevents the camera indicator from staying on after the user leaves the page.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-3">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Completion depends on the saved employee having &lt;code&gt;sampleCount &amp;gt; 0&lt;/code&gt;."
+       data-explanation-wrong="The button depends on enrollment samples, not route metadata.">
+    <h3 class="quiz-question">The Complete Registration button stays disabled. Which state should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>hasEnrollmentSamples</code> and <code>employee.sampleCount</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_ALLOWED_ORIGINS</code> only.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The payroll month input.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Exactly. The form, payload, TypeScript type, and backend contract must all agree."
+       data-explanation-wrong="A cross-boundary field needs updates in both frontend and backend contracts.">
+    <h3 class="quiz-question">You add a new employee field to registration. What must be updated together?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the form label.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>CV/haar_face.xml</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Form state, payload creation, <code>cv-api.ts</code> type, and server model.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Yes. Camera cleanup should stop every &lt;code&gt;MediaStreamTrack&lt;/code&gt; on unmount."
+       data-explanation-wrong="The webcam is controlled by the browser media stream, not payroll or JSON files.">
+    <h3 class="quiz-question">The camera light stays on after navigation. Which code pattern should you verify?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Monthly payroll refresh.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>stream.getTracks().forEach(track =&gt; track.stop())</code> cleanup.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee delete confirmation text.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-3')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-3')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Live Monitor Screen</h1>
+      <p class="module-subtitle">The live monitor combines camera access, repeated recognition calls, bounding boxes, and a recent-event feed.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Live monitor is an instrument panel</h2>
+      <p>The page owns the camera and polling logic. Child components render the video overlay and recognition history.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">live monitor path</span><span class="ft-desc">Browser-side recognition workflow</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">app/live-monitor/page.tsx</span><span class="ft-desc">Camera setup, intervals, API calls, state</span></div>
+            <div class="ft-file"><span class="ft-name">components/live-monitor/camera-feed.tsx</span><span class="ft-desc">Video element and detection boxes</span></div>
+            <div class="ft-file"><span class="ft-name">components/live-monitor/recognition-feed.tsx</span><span class="ft-desc">Recent recognition list and status badges</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>app/live-monitor/page.tsx:21-200</code>, <code>components/live-monitor/camera-feed.tsx:46-165</code>, <code>components/live-monitor/recognition-feed.tsx:14-112</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The page polls health and recent recognitions</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">void loadHealth();
+void loadRecentRecognitions();
+
+const healthInterval = window.setInterval(() =&gt; void loadHealth(), 5000);
+const recognitionInterval = window.setInterval(() =&gt; void loadRecentRecognitions(), 2000);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Load health and recent events immediately when the page opens.</p>
+      <p class="tl">Refresh backend health every 5 seconds.</p>
+      <p class="tl">Refresh the recognition feed every 2 seconds.</p>
+      <p class="tl">The page clears both intervals when it unmounts.</p>
+      <p class="tl">File reference: <code>app/live-monitor/page.tsx:98-108</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Boxes are drawn with percentages</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const top = `${detection.box.top * 100}%`;
+const left = `${detection.box.left * 100}%`;
+const width = `${detection.box.width * 100}%`;
+const height = `${detection.box.height * 100}%`;</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Take normalized box values from the backend.</p>
+      <p class="tl">Convert each ratio into a CSS percentage.</p>
+      <p class="tl">Apply those percentages to an absolutely positioned box.</p>
+      <p class="tl">That makes overlays scale with the video element.</p>
+      <p class="tl">File reference: <code>components/live-monitor/camera-feed.tsx:127-140</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">UI</div>
+        <div class="callout-content">
+          <strong class="callout-title">Frontend responsibility</strong>
+          <p>The frontend does not decide who the face belongs to. It turns backend detection data into an understandable visual overlay.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-4">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Check whether &lt;code&gt;recognizeFrame&lt;/code&gt; returns detections and whether state reaches &lt;code&gt;CameraFeed&lt;/code&gt;."
+       data-explanation-wrong="The issue is likely in the recognition response path or overlay rendering.">
+    <h3 class="quiz-question">The video works, but boxes never show. What should you inspect first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>result.detections</code>, <code>setDetections</code>, and <code>CameraFeed</code> props.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Leave reason input.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Payroll month formatting.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Exactly. The video can resize, so ratio-based boxes remain aligned."
+       data-explanation-wrong="The purpose is responsive overlay positioning.">
+    <h3 class="quiz-question">Why use percentages for bounding boxes?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because Python cannot return pixels.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the rendered video size can differ from the uploaded frame size.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because CSS cannot use pixel values.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. Recent events come from &lt;code&gt;getRecentRecognitions&lt;/code&gt;, not the detection overlay state alone."
+       data-explanation-wrong="Separate state feeds drive boxes and recent events.">
+    <h3 class="quiz-question">The recent feed is stale but recognition boxes update. Which polling path is likely involved?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee wage input.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The root redirect.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>loadRecentRecognitions</code> and the 2 second interval.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-4')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-4')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">Dashboard, Employees, Leave, Payroll</h1>
+      <p class="module-subtitle">The remaining screens turn backend data into operational workflows for managers.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Each page owns one workflow</h2>
+      <p>The frontend pattern is consistent: page loads data from <code>cv-api.ts</code>, stores it in React state, renders a table or feed, and exposes a refresh or mutation action.</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-1)">D</div><h4 class="pattern-title">Dashboard</h4><p class="pattern-desc">Calls <code>getTodayAttendance</code> and renders tabs for all, present, late, and absent.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-2)">E</div><h4 class="pattern-title">Employees</h4><p class="pattern-desc">Loads employees, edits wage/schedule, and deletes records.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-3)">L</div><h4 class="pattern-title">Leave</h4><p class="pattern-desc">Creates approved leave rows tied to employee IDs.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-4)">P</div><h4 class="pattern-title">Payroll</h4><p class="pattern-desc">Requests monthly payroll and renders salary totals.</p></div>
+      </div>
+      <p>File references: <code>app/dashboard/page.tsx:15-77</code>, <code>app/employees/page.tsx:12-113</code>, <code>app/leave-management/page.tsx:24-216</code>, <code>app/payroll/page.tsx:24-149</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Dashboard data load is the page pattern</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const loadAttendance = React.useCallback(async () =&gt; {
+  try {
+    setLoading(true);
+    setError(null);
+    setEmployees(await getTodayAttendance());
+    setLastUpdated(</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Create a reusable async loader for the page.</p>
+      <p class="tl">Turn on loading and clear any old error.</p>
+      <p class="tl">Ask the API client for today's attendance rows.</p>
+      <p class="tl">Store rows in React state so the feed rerenders.</p>
+      <p class="tl">Update a visible last-refreshed time.</p>
+      <p class="tl">File reference: <code>app/dashboard/page.tsx:21-32</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Employee edits flow upward</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">async function handleSaveSchedule(
+  id: number,
+  data: { monthlyWage: number; schedule: Employee["schedule"] },
+) {
+  try {
+    setSavingEmployeeId(id);
+    const updatedEmployee = await updateEmployee(id, data);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">The page receives an employee ID and new wage/schedule data.</p>
+      <p class="tl">It records which employee is saving so the UI can disable controls.</p>
+      <p class="tl">It sends the patch through the shared API client.</p>
+      <p class="tl">Then it replaces the updated employee in local state.</p>
+      <p class="tl">File reference: <code>app/employees/page.tsx:35-44</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">PAT</div>
+        <div class="callout-content">
+          <strong class="callout-title">Common React pattern</strong>
+          <p>Child components collect user input, but parent pages often own data loading and saving because they understand the full page state.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-5">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Update the TypeScript interface and whichever dashboard/feed component displays it."
+       data-explanation-wrong="Backend fields cross into &lt;code&gt;cv-api.ts&lt;/code&gt; types and display components.">
+    <h3 class="quiz-question">You add a new backend field to attendance rows. Which frontend locations are likely affected?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>AttendanceTodayItem</code> in <code>cv-api.ts</code> and dashboard components.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>CV/requirements.txt</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the face cascade XML.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Exactly. It stores the active employee ID rather than a single global boolean."
+       data-explanation-wrong="The employee page tracks the specific ID being saved or deleted.">
+    <h3 class="quiz-question">A save button should show only one row as saving. What state pattern does this repo use?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Delete every row before saving.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Store <code>savingEmployeeId</code> and compare it to each row ID.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Put the saving state in <code>haar_face.xml</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. &lt;code&gt;loadPayroll&lt;/code&gt; depends on &lt;code&gt;month&lt;/code&gt; and calls &lt;code&gt;getMonthlyPayroll(month)&lt;/code&gt;."
+       data-explanation-wrong="Payroll data is loaded from the payroll page state and API call.">
+    <h3 class="quiz-question">The payroll page shows old totals after changing the month. Where is month state used?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The live monitor detection overlay.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The face registration sample loop.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/payroll/page.tsx</code>, especially <code>month</code> and <code>loadPayroll</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-5')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-5')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+  <section class="course-switcher" aria-label="Course navigation">
+  <a class="course-switch-link previous" href="../02-server/index.html">
+    <span class="course-switch-kicker">Previous course</span>
+    <span class="course-switch-title">How The Server Works</span>
+  </a>
+  <a class="course-switch-link next" href="../04-integration/index.html">
+    <span class="course-switch-kicker">Next course</span>
+    <span class="course-switch-title">How Everything Is Integrated</span>
+  </a>
+  </section>
+  </main>
+
+</body>
+</html>

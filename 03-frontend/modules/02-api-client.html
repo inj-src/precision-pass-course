@@ -1,0 +1,160 @@
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">The API Client Gateway</h1>
+      <p class="module-subtitle">The frontend does not scatter raw fetch calls everywhere. It centralizes backend access in lib/cv-api.ts.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">The API client is the phonebook</h2>
+      <p>Pages call named functions like <code>getEmployees</code> and <code>recognizeFrame</code>. Those functions hide URL building, <span class="term" data-definition="HTTP is the request-response protocol browsers use to talk to servers. Methods like GET, POST, PATCH, and DELETE describe the kind of action.">HTTP</span> methods, error handling, and response typing.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">lib</span><span class="ft-desc">Frontend helpers</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">cv-api.ts</span><span class="ft-desc">TypeScript types and all backend request helpers</span></div>
+            <div class="ft-file"><span class="ft-name">video-frame.ts</span><span class="ft-desc">Turns video into JPEG blobs for upload</span></div>
+            <div class="ft-file"><span class="ft-name">utils.ts</span><span class="ft-desc">Class-name merging helper used by UI components</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>lib/cv-api.ts:1-130</code>, <code>lib/cv-api.ts:132-163</code>, <code>lib/cv-api.ts:165-260</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">One request helper handles errors</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">async function request&lt;T&gt;(path: string, init?: RequestInit): Promise&lt;T&gt; {
+  const response = await fetch(apiUrl(path), {
+    ...init,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Make a reusable typed request function.</p>
+      <p class="tl">Call <code>fetch</code> with the full backend URL.</p>
+      <p class="tl">Include caller-provided method, headers, and body.</p>
+      <p class="tl">Disable browser caching for live operational data.</p>
+      <p class="tl">If the server says the request failed, enter the error path.</p>
+      <p class="tl">File reference: <code>lib/cv-api.ts:139-145</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Camera uploads use FormData</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">export async function recognizeFrame(frame: Blob): Promise&lt;RecognitionFrameResponse&gt; {
+  const formData = new FormData();
+  formData.append("frame", frame, "frame.jpg");
+  return request&lt;RecognitionFrameResponse&gt;("/recognition/frame", {
+    method: "POST",
+    body: formData,
+  });
+}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Expose a frontend function specifically for one recognition frame.</p>
+      <p class="tl">Create a browser form body that can carry a file.</p>
+      <p class="tl">Attach the image as the field name the backend expects: <code>frame</code>.</p>
+      <p class="tl">POST that form to the recognition endpoint.</p>
+      <p class="tl">Return the typed detection and attendance response.</p>
+      <p class="tl">File reference: <code>lib/cv-api.ts:215-222</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">TYPE</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why TypeScript interfaces matter</strong>
+          <p>The interfaces at the top of <code>cv-api.ts</code> mirror the server's response models. When a field changes, update both sides together.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-2">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The shared &lt;code&gt;request&lt;/code&gt; helper parses error details from failed responses."
+       data-explanation-wrong="Error parsing is centralized in the API request helper.">
+    <h3 class="quiz-question">A server error message is not showing in the UI. Which helper should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/haar_face.xml</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>request&lt;T&gt;</code> in <code>lib/cv-api.ts</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/favicon.ico</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The frontend &lt;code&gt;FormData.append&lt;/code&gt; field name must match the server parameter."
+       data-explanation-wrong="Upload field names are part of the API contract.">
+    <h3 class="quiz-question">You rename the backend upload field from <code>frame</code> to <code>image</code>. What else must change?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>formData.append(&quot;frame&quot;, ...)</code> in <code>recognizeFrame</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the dashboard table labels.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only payroll daily rate math.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. Attendance, recognition, and employee data can change during the session."
+       data-explanation-wrong="These screens need fresh operational data, not cached old responses.">
+    <h3 class="quiz-question">Why is <code>cache: &quot;no-store&quot;</code> appropriate here?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It makes CSS compile faster.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It trains the KNN model.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It prevents stale backend responses on live data screens.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-2')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-2')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

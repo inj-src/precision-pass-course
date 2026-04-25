@@ -1,0 +1,153 @@
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Employee, Leave, Payroll Integration</h1>
+      <p class="module-subtitle">The admin screens share employee IDs as the thread tying schedules, leave, attendance, and salary together.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Employee ID is the stitching key</h2>
+      <p>Employees have IDs. Attendance rows use <code>id</code>. Leave rows use <code>employeeId</code>. Payroll joins all of that per employee.</p>
+      <div class="badge-list animate-in">
+        <div class="badge-item"><code class="badge-code">employees.json</code><span class="badge-desc">Owns ID, name, department, schedule, wage, enrollment.</span></div>
+        <div class="badge-item"><code class="badge-code">attendance.json</code><span class="badge-desc">Uses employee ID and date to record check-ins.</span></div>
+        <div class="badge-item"><code class="badge-code">leaves.json</code><span class="badge-desc">Uses employeeId to apply approved leave to payroll.</span></div>
+        <div class="badge-item"><code class="badge-code">payroll/monthly</code><span class="badge-desc">Combines all three into salary rows.</span></div>
+      </div>
+      <p>References: <code>CV/data.py:56-76</code>, <code>CV/data.py:184-206</code>, <code>CV/server.py:324-378</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Deleting an employee cleans related records</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">remaining_attendance = [
+    record
+    for record in attendance_records
+    if record["id"] != employee_to_delete["id"]
+]
+leave_records = load_json(LEAVES_PATH)
+remaining_leaves = [</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Build a new attendance list without this employee's rows.</p>
+      <p class="tl">Load leave records too.</p>
+      <p class="tl">The function also removes leaves for the deleted employee.</p>
+      <p class="tl">Later it removes the employee's face sample folder.</p>
+      <p class="tl">File reference: <code>CV/data.py:115-134</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Payroll walks all employees</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">response_items: list[dict] = []
+for employee in data.list_employees():
+    employee_id = employee["id"]
+    present_dates = {
+        record["date"]
+        for record in attendance_records</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Start the payroll response list.</p>
+      <p class="tl">Process every employee, even if they have no attendance.</p>
+      <p class="tl">Use employee ID to find that person's attendance rows.</p>
+      <p class="tl">Then the route also checks approved leave and absence.</p>
+      <p class="tl">File reference: <code>CV/server.py:331-337</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">KEY</div>
+        <div class="callout-content">
+          <strong class="callout-title">Universal data lesson</strong>
+          <p>IDs connect records across files. When an ID changes or is deleted, every related feature can be affected.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-integration-4">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Deletion should update employee, attendance, leave, sample files, and retrain the model."
+       data-explanation-wrong="The issue is likely cleanup of related records or stale loaded data.">
+    <h3 class="quiz-question">A deleted employee still appears in payroll. What should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>data.delete_employee</code>, related JSON files, and page refresh state.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the camera overlay corners.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the Google Fonts link.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Exactly. Employees with no attendance still need absent-day calculations."
+       data-explanation-wrong="Payroll must include people even when they did not check in.">
+    <h3 class="quiz-question">Why does payroll loop over employees instead of attendance rows only?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because attendance rows cannot store dates.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because every employee needs a payroll row, including absent employees.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because React tables cannot render attendance.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. The data layer enriches missing employees as &lt;code&gt;Unknown employee&lt;/code&gt;."
+       data-explanation-wrong="Leave rows are enriched from employee records, so missing IDs affect display and payroll logic.">
+    <h3 class="quiz-question">A leave row points to a missing employee. What symptom can appear?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The face detector file becomes invalid.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>All buttons disappear.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Leave display can show unknown employee or payroll leave math can miss the intended person.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-integration-4')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-integration-4')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

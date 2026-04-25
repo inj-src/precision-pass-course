@@ -1,0 +1,155 @@
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">Leave And Payroll Logic</h1>
+      <p class="module-subtitle">Payroll combines attendance, approved leave, wage, and month dates into salary numbers.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Payroll is an accounting worksheet</h2>
+      <p>The payroll route asks: for this month, which days were present, which absent days were approved leave, and how much salary remains after deductions?</p>
+      <div class="flow-steps animate-in">
+        <div class="flow-step"><div class="flow-step-num">1</div><p>Build all dates in month</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">2</div><p>Find present dates</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">3</div><p>Find paid leave dates</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">4</div><p>Deduct absent days</p></div>
+      </div>
+      <p>File references: <code>CV/server.py:324-378</code>, <code>CV/data.py:167-206</code>, <code>app/payroll/page.tsx:24-149</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The route builds month dates</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def month_dates(month: str) -&gt; list[date]:
+    try:
+        year, month_number = [int(part) for part in month.split("-")]
+        last_day = calendar.monthrange(year, month_number)[1]
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail="Month must be YYYY-MM.") from error</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Accept text like <code>2026-04</code>.</p>
+      <p class="tl">Split it into year and month number.</p>
+      <p class="tl">Ask Python how many days are in that month.</p>
+      <p class="tl">Return a clear 400 error if the format is wrong.</p>
+      <p class="tl">File reference: <code>CV/server.py:178-184</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Net pay is computed per employee</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">absent_days = len(date_values - present_dates - paid_leave_dates)
+monthly_wage = float(employee.get("monthlyWage", 0))
+daily_rate = monthly_wage / 30
+deduction = absent_days * daily_rate
+net_pay = max(monthly_wage - deduction, 0)</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Start with all dates in the month, then remove present and paid-leave dates.</p>
+      <p class="tl">Read this employee's monthly wage.</p>
+      <p class="tl">Use a simple 30-day daily rate.</p>
+      <p class="tl">Deduct one daily rate per absent day.</p>
+      <p class="tl">Never return negative pay.</p>
+      <p class="tl">File reference: <code>CV/server.py:351-355</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-warning">
+        <div class="callout-icon">RULE</div>
+        <div class="callout-content">
+          <strong class="callout-title">Business rule to confirm</strong>
+          <p>This demo uses <code>monthly_wage / 30</code> even for months with 28 or 31 days. That may be intentional, but it is the exact rule to discuss before production use.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-server-5">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The route builds &lt;code&gt;paid_leave_dates&lt;/code&gt; and subtracts them from absence."
+       data-explanation-wrong="The important logic is in the server payroll calculation.">
+    <h3 class="quiz-question">Payroll is wrong for a month with many approved leaves. Where should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The dashboard header title.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/server.py:340-355</code>, especially paid leave and absent day math.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/haar_face.xml</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. Creating a leave requires choosing an existing employee."
+       data-explanation-wrong="Leave records need employee context for selection and display.">
+    <h3 class="quiz-question">Why does leave management load employees and leaves together?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The page needs employees for the selector and leaves for the table.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>OpenCV requires leave rows.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The route cannot run without payroll being open.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. It changes server contracts, persistence fields, UI forms, and payroll math."
+       data-explanation-wrong="Half-day leave affects data shape and payroll calculation, not only visual text.">
+    <h3 class="quiz-question">If the business wants half-day leave, which kind of change is this?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only a CSS color change.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only a route rename.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>A cross-layer business-rule change.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-server-5')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-server-5')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,155 @@
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">JSON Persistence Layer</h1>
+      <p class="module-subtitle">Instead of a database, this demo stores employees, attendance, leaves, and face samples on disk.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">The data layer is a filing cabinet</h2>
+      <p><code>CV/data.py</code> owns file paths and storage helpers. It uses <span class="term" data-definition="JSON is a text format for storing structured data as objects and arrays. It is easy for both JavaScript and Python to read.">JSON</span> arrays for records and normal folders for face image samples.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">CV/data</span><span class="ft-desc">Server-side storage</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">employees.json</span><span class="ft-desc">Employee records, schedules, wages, enrollment status</span></div>
+            <div class="ft-file"><span class="ft-name">attendance.json</span><span class="ft-desc">Daily check-in rows</span></div>
+            <div class="ft-file"><span class="ft-name">leaves.json</span><span class="ft-desc">Approved leave rows used by payroll</span></div>
+            <div class="ft-folder"><span class="ft-name">face_samples</span><span class="ft-desc">Employee face crop folders</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>CV/data.py:9-23</code>, <code>CV/data.py:25-37</code>, <code>CV/data.py:139-157</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The server creates missing files</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def ensure_data_files() -&gt; None:
+    DATA_DIR.mkdir(exist_ok=True)
+    FACE_SAMPLES_DIR.mkdir(exist_ok=True)
+    for path in (EMPLOYEES_PATH, ATTENDANCE_PATH, LEAVES_PATH):
+        if not path.exists():
+            path.write_text("[]\\n", encoding="utf-8")</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Define a helper that makes storage safe to use.</p>
+      <p class="tl">Create the main data directory if it is absent.</p>
+      <p class="tl">Create the face sample directory too.</p>
+      <p class="tl">For each JSON file, create an empty array if the file is missing.</p>
+      <p class="tl">File reference: <code>CV/data.py:17-22</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Writes use a temporary file first</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def save_json(path: Path, rows: list[dict]) -&gt; None:
+    ensure_data_files()
+    temp_path = path.with_suffix(path.suffix + ".tmp")
+    temp_path.write_text(json.dumps(rows, indent=2) + "\\n", encoding="utf-8")
+    temp_path.replace(path)</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Make sure folders and files exist before saving.</p>
+      <p class="tl">Write the new JSON content into a temporary file.</p>
+      <p class="tl">Replace the real file only after the temp write succeeds.</p>
+      <p class="tl">This reduces the chance of leaving a half-written JSON file.</p>
+      <p class="tl">File reference: <code>CV/data.py:33-37</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">DB</div>
+        <div class="callout-content">
+          <strong class="callout-title">Production note</strong>
+          <p>This JSON layer is simple and readable for a demo. For multi-user production use, a real database would handle concurrent writes and querying more safely.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-server-3">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. Employee records live in &lt;code&gt;CV/data/employees.json&lt;/code&gt;."
+       data-explanation-wrong="The server stores demo data in JSON files under &lt;code&gt;CV/data&lt;/code&gt;.">
+    <h3 class="quiz-question">Employees disappear after a restart. Which files should you inspect first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/globals.css</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data/employees.json</code> and the storage helper in <code>CV/data.py</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>public/vercel.svg</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Yes. If the write fails midway, the original file is less likely to be corrupted."
+       data-explanation-wrong="The temp file is a basic safety pattern for file persistence.">
+    <h3 class="quiz-question">Why is writing through a temp file better than overwriting directly?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It reduces risk of a partially written JSON file.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It makes OpenCV detect faces faster.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It hides files from the frontend.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. JSON files do not provide database-style concurrent write protection."
+       data-explanation-wrong="The limitation is storage concurrency, not the table component.">
+    <h3 class="quiz-question">If two users edit employees at the exact same time, what is the architectural concern?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Tailwind cannot render two buttons.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>FastAPI cannot accept HTTP requests.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>File-based JSON storage can lose updates without stronger locking or a database.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-server-3')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-server-3')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,158 @@
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">Registration End To End</h1>
+      <p class="module-subtitle">Employee creation and face enrollment cross every important layer except payroll.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">One workflow, many files</h2>
+      <p>Registration starts in a React form, creates an employee through the API client, uploads face samples, saves image files, updates employee metadata, and retrains the recognition model.</p>
+      <div class="flow-steps animate-in">
+        <div class="flow-step"><div class="flow-step-num">1</div><p>Form state</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">2</div><p>POST /employees</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">3</div><p>Capture samples</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">4</div><p>POST enroll</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">5</div><p>Retrain model</p></div>
+      </div>
+      <p>References: <code>app/face-registration/page.tsx:128-191</code>, <code>lib/cv-api.ts:173-212</code>, <code>CV/server.py:229-263</code>, <code>CV/vision.py:81-114</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Frontend and backend use matching field names</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const payload = {
+  fullName: formData.fullName.trim(),
+  department: formData.department.trim(),
+  monthlyWage: Number(formData.monthlyWage) || 0,
+  schedule: {
+    checkInTime: formData.checkInTime,
+    checkOutTime: formData.checkOutTime,
+  },</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Collect values from React form state.</p>
+      <p class="tl">Trim text fields before sending them.</p>
+      <p class="tl">Convert wage text into a number.</p>
+      <p class="tl">Build the nested schedule object expected by the backend.</p>
+      <p class="tl">The names match <code>EmployeeCreate</code> in <code>CV/server.py</code>.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:134-142</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Enrollment response updates the UI</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const result = await enrollEmployee(employee.id, frames);
+setEmployee(result.employee);
+setEnrollmentResult(result);
+await loadHealth();</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Upload all captured frame blobs for this employee.</p>
+      <p class="tl">Replace local employee state with the server's updated version.</p>
+      <p class="tl">Store accepted and rejected sample counts for the summary panel.</p>
+      <p class="tl">Refresh model health because retraining may have changed readiness.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:180-183</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">SYNC</div>
+        <div class="callout-content">
+          <strong class="callout-title">Integration rule</strong>
+          <p>After a mutation, trust the server response. Do not guess sample counts on the client when the backend decides which frames were accepted.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-integration-2">
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. Follow the path from accepted samples to retraining and health refresh."
+       data-explanation-wrong="The symptom crosses enrollment, retraining, and health.">
+    <h3 class="quiz-question">The UI says enrollment complete, but live recognition still says model not ready. What should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the sidebar tooltip.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only payroll totals.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Accepted sample count, <code>vision.retrain_model</code>, and <code>getHealth</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The backend rejects frames with no face or multiple faces."
+       data-explanation-wrong="The backend has sample-quality rules the browser does not reproduce.">
+    <h3 class="quiz-question">Why should the client not assume all 18 uploaded frames were accepted?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The backend may reject bad frames and returns the official accepted count.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>React cannot count to 18.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>FastAPI always deletes the frames.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Yes. It touches form state, API types, server models, persistence, and display surfaces."
+       data-explanation-wrong="A required field crosses the frontend-backend data contract.">
+    <h3 class="quiz-question">Adding a required employee field affects which layers?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>CV/haar_face.xml</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Frontend form, <code>cv-api.ts</code>, server Pydantic models, and data storage.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only recognition feed badges.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-integration-2')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-integration-2')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

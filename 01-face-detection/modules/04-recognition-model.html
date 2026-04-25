@@ -1,0 +1,159 @@
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Recognition: Comparing A Face To Samples</h1>
+      <p class="module-subtitle">After a rectangle is found, the model asks which enrolled employee looks nearest.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Recognition is a closest-match lookup</h2>
+      <p>The model is a <span class="term" data-definition="KNN means K-nearest neighbors. It predicts a label by finding the most similar saved examples.">KNN</span> classifier from scikit-learn. Each saved face crop becomes a flat list of numbers, and each list is labeled with the employee ID.</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card" style="border-top-color: var(--color-actor-1)"><div class="pattern-icon" style="background: var(--color-actor-1)">50</div><h4 class="pattern-title">Resize</h4><p class="pattern-desc">Every face becomes 50 by 50 pixels so all samples have the same shape.</p></div>
+        <div class="pattern-card" style="border-top-color: var(--color-actor-2)"><div class="pattern-icon" style="background: var(--color-actor-2)">1D</div><h4 class="pattern-title">Flatten</h4><p class="pattern-desc">The image grid becomes one long numeric fingerprint.</p></div>
+        <div class="pattern-card" style="border-top-color: var(--color-actor-3)"><div class="pattern-icon" style="background: var(--color-actor-3)">ID</div><h4 class="pattern-title">Label</h4><p class="pattern-desc">The fingerprint is stored with the employee ID as its answer key.</p></div>
+      </div>
+      <p>File references: <code>CV/vision.py:58-79</code>, <code>CV/vision.py:224-227</code>, and <code>CV/vision.py:148-171</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Training reads all saved samples</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">for employee in data.list_employees():
+    sample_dir = data.face_samples_dir(employee["id"])
+    for sample_path in sorted(sample_dir.glob("*.jpg")):
+        image = cv2.imread(str(sample_path))
+        if image is None:
+            continue
+        samples.append(preprocess_face(image))
+        labels.append(str(employee["id"]))</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Loop over every employee record.</p>
+      <p class="tl">Open that employee's face sample folder.</p>
+      <p class="tl">Read each JPEG face crop from disk.</p>
+      <p class="tl">Skip unreadable images instead of crashing training.</p>
+      <p class="tl">Convert the image into the numeric shape the model expects.</p>
+      <p class="tl">Store the employee ID as the label for that sample.</p>
+      <p class="tl">File reference: <code>CV/vision.py:62-69</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Unknown is a deliberate result</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">distances, _ = model.kneighbors(sample, n_neighbors=1)
+distance = float(distances[0][0])
+predicted_employee_id = str(model.predict(sample)[0])
+
+if (
+    predicted_employee_id not in employees_by_code
+    or distance &gt; state.unknown_distance_threshold
+):</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Ask the KNN model for the nearest saved face sample.</p>
+      <p class="tl">Read how far away that nearest sample is.</p>
+      <p class="tl">Ask the model which employee ID it predicts.</p>
+      <p class="tl">Reject the prediction if the employee no longer exists.</p>
+      <p class="tl">Also reject it if the distance is too large.</p>
+      <p class="tl">That threshold is what turns a weak guess into <code>unknown</code>.</p>
+      <p class="tl">File reference: <code>CV/vision.py:150-157</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-warning">
+        <div class="callout-icon">DBG</div>
+        <div class="callout-content">
+          <strong class="callout-title">Debugging smell</strong>
+          <p>If everyone is unknown, inspect sample quality and <code>CV_UNKNOWN_DISTANCE_THRESHOLD</code>. If everyone matches the wrong person, inspect training folders and employee IDs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-4">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. The model may still have learned samples for the deleted employee until it is rebuilt."
+       data-explanation-wrong="The retrain is about removing old learned examples from the active model.">
+    <h3 class="quiz-question">After deleting an employee, why must the model retrain?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the KNN model keeps learned samples in memory.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the sidebar route cache must refresh.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because payroll month names are generated at startup.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Yes. The unknown distance threshold controls how far a nearest sample can be before rejecting the match."
+       data-explanation-wrong="The relevant setting is the distance threshold inside the vision state.">
+    <h3 class="quiz-question">Recognition is too strict and labels real employees as unknown. Which setting is most relevant?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>NEXT_PUBLIC_CV_API_BASE_URL</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_UNKNOWN_DISTANCE_THRESHOLD</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_ALLOWED_ORIGINS</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Exactly. Machine learning input arrays need consistent shape."
+       data-explanation-wrong="The key reason is that every sample must have the same number of values.">
+    <h3 class="quiz-question">Why are faces resized to one fixed size before training?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So React can draw a rounded rectangle.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So JSON files are sorted alphabetically.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So every saved face becomes the same-length numeric vector.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-4')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-4')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

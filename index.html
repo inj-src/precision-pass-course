@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Precision Pass Project Courses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #FAF7F2;
+      --paper: #FFFFFF;
+      --text: #2C2A28;
+      --muted: #6B6560;
+      --border: #E5DFD6;
+      --accent: #D94F30;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "DM Sans", sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 24px;
+    }
+    header {
+      max-width: 780px;
+      margin-bottom: 40px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: .98;
+      margin: 12px 0 20px;
+    }
+    .lead {
+      font-size: 18px;
+      color: var(--muted);
+      margin: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+    .course-card {
+      display: block;
+      min-height: 280px;
+      padding: 26px;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent);
+      border-radius: 16px;
+      background: var(--paper);
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgba(44, 42, 40, .08);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .course-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 42px rgba(44, 42, 40, .12);
+    }
+    .course-number {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h2 {
+      font-family: "Bricolage Grotesque", sans-serif;
+      font-size: 26px;
+      line-height: 1.05;
+      margin: 16px 0 14px;
+    }
+    p {
+      color: var(--muted);
+      margin: 0;
+    }
+    .open-link {
+      display: inline-block;
+      margin-top: 28px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Precision Pass learning path</div>
+      <h1>Four detailed beginner-friendly courses for this project</h1>
+      <p class="lead">Each course is browser-ready and includes file references, real code translations, quizzes, architecture visuals, and interactive flows.</p>
+    </header>
+    <section class="grid">
+      <a class="course-card" href="./01-face-detection/index.html">
+        <span class="course-number">Course 1</span>
+        <h2>How Face Detection Works</h2>
+        <p>Camera frames, enrollment samples, OpenCV face boxes, KNN recognition, and attendance side effects.</p>
+        <span class="open-link">Open course</span>
+      </a>
+      <a class="course-card" href="./02-server/index.html">
+        <span class="course-number">Course 2</span>
+        <h2>How The Server Works</h2>
+        <p>FastAPI routes, Pydantic contracts, JSON persistence, recognition endpoints, leave, and payroll.</p>
+        <span class="open-link">Open course</span>
+      </a>
+      <a class="course-card" href="./03-frontend/index.html">
+        <span class="course-number">Course 3</span>
+        <h2>How The Frontend Works</h2>
+        <p>Next.js route layouts, the API client, face registration, live monitor, and admin screens.</p>
+        <span class="open-link">Open course</span>
+      </a>
+      <a class="course-card" href="./04-integration/index.html">
+        <span class="course-number">Course 4</span>
+        <h2>How Everything Is Integrated</h2>
+        <p>End-to-end flows across browser pages, API helpers, FastAPI, vision logic, and JSON storage.</p>
+        <span class="open-link">Open course</span>
+      </a>
+    </section>
+  </main>
+</body>
+</html>

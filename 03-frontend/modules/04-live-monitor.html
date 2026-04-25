@@ -1,0 +1,152 @@
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Live Monitor Screen</h1>
+      <p class="module-subtitle">The live monitor combines camera access, repeated recognition calls, bounding boxes, and a recent-event feed.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Live monitor is an instrument panel</h2>
+      <p>The page owns the camera and polling logic. Child components render the video overlay and recognition history.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">live monitor path</span><span class="ft-desc">Browser-side recognition workflow</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">app/live-monitor/page.tsx</span><span class="ft-desc">Camera setup, intervals, API calls, state</span></div>
+            <div class="ft-file"><span class="ft-name">components/live-monitor/camera-feed.tsx</span><span class="ft-desc">Video element and detection boxes</span></div>
+            <div class="ft-file"><span class="ft-name">components/live-monitor/recognition-feed.tsx</span><span class="ft-desc">Recent recognition list and status badges</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>app/live-monitor/page.tsx:21-200</code>, <code>components/live-monitor/camera-feed.tsx:46-165</code>, <code>components/live-monitor/recognition-feed.tsx:14-112</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The page polls health and recent recognitions</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">void loadHealth();
+void loadRecentRecognitions();
+
+const healthInterval = window.setInterval(() =&gt; void loadHealth(), 5000);
+const recognitionInterval = window.setInterval(() =&gt; void loadRecentRecognitions(), 2000);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Load health and recent events immediately when the page opens.</p>
+      <p class="tl">Refresh backend health every 5 seconds.</p>
+      <p class="tl">Refresh the recognition feed every 2 seconds.</p>
+      <p class="tl">The page clears both intervals when it unmounts.</p>
+      <p class="tl">File reference: <code>app/live-monitor/page.tsx:98-108</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Boxes are drawn with percentages</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const top = `${detection.box.top * 100}%`;
+const left = `${detection.box.left * 100}%`;
+const width = `${detection.box.width * 100}%`;
+const height = `${detection.box.height * 100}%`;</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Take normalized box values from the backend.</p>
+      <p class="tl">Convert each ratio into a CSS percentage.</p>
+      <p class="tl">Apply those percentages to an absolutely positioned box.</p>
+      <p class="tl">That makes overlays scale with the video element.</p>
+      <p class="tl">File reference: <code>components/live-monitor/camera-feed.tsx:127-140</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">UI</div>
+        <div class="callout-content">
+          <strong class="callout-title">Frontend responsibility</strong>
+          <p>The frontend does not decide who the face belongs to. It turns backend detection data into an understandable visual overlay.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-4">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Check whether &lt;code&gt;recognizeFrame&lt;/code&gt; returns detections and whether state reaches &lt;code&gt;CameraFeed&lt;/code&gt;."
+       data-explanation-wrong="The issue is likely in the recognition response path or overlay rendering.">
+    <h3 class="quiz-question">The video works, but boxes never show. What should you inspect first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>result.detections</code>, <code>setDetections</code>, and <code>CameraFeed</code> props.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Leave reason input.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Payroll month formatting.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Exactly. The video can resize, so ratio-based boxes remain aligned."
+       data-explanation-wrong="The purpose is responsive overlay positioning.">
+    <h3 class="quiz-question">Why use percentages for bounding boxes?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because Python cannot return pixels.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the rendered video size can differ from the uploaded frame size.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because CSS cannot use pixel values.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. Recent events come from &lt;code&gt;getRecentRecognitions&lt;/code&gt;, not the detection overlay state alone."
+       data-explanation-wrong="Separate state feeds drive boxes and recent events.">
+    <h3 class="quiz-question">The recent feed is stale but recognition boxes update. Which polling path is likely involved?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee wage input.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The root redirect.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>loadRecentRecognitions</code> and the 2 second interval.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-4')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-4')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

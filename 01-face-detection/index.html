@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course 1: How Face Detection Works</title>
+
+  <!-- Google Fonts: Bricolage Grotesque · DM Sans · JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <!--
+    CUSTOMIZE PER COURSE — change only the three accent variables below.
+    Options:
+      vermillion  #D94F30 / #C4432A / #FDEEE9 / #E8836C  (default)
+      coral       #E06B56 / #C85A47 / #FDECEA / #E89585
+      teal        #2A7B9B / #1F6280 / #E4F2F7 / #5A9DB8
+      amber       #D4A843 / #BF9530 / #FDF5E0 / #E0C070
+      forest      #2D8B55 / #226B41 / #E8F5EE / #5AAD7A
+  -->
+  <style>
+    :root {
+      --color-accent:       #2A7B9B;
+      --color-accent-hover: #1F6280;
+      --color-accent-light: #E4F2F7;
+      --color-accent-muted: #5A9DB8;
+    }
+    .translation-code .hljs {
+      background: transparent;
+      padding: 0;
+    }
+    .translation-block {
+      grid-template-columns: 1fr;
+    }
+    .translation-english {
+      border-left: 0;
+      border-top: 3px solid var(--color-accent);
+    }
+    .course-switcher {
+      max-width: var(--content-width-wide);
+      margin: var(--space-12) auto var(--space-16);
+      padding: var(--space-6);
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+    .course-switch-link {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 96px;
+      padding: var(--space-5);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      color: var(--color-text);
+      text-decoration: none;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--duration-fast) var(--ease-out), border-color var(--duration-fast), box-shadow var(--duration-fast);
+    }
+    .course-switch-link:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-accent-muted);
+      box-shadow: var(--shadow-md);
+    }
+    .course-switch-link.next { text-align: right; }
+    .course-switch-kicker {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--color-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-2);
+    }
+    .course-switch-title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      line-height: var(--leading-snug);
+    }
+    @media (max-width: 768px) {
+      .course-switcher { grid-template-columns: 1fr; }
+      .course-switch-link.next { text-align: left; }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/typescript.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/python.min.js" defer></script>
+  <script src="main.js" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.hljs) {
+        window.hljs.highlightAll();
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">Course 1: How Face Detection Works</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="Face Pipeline" role="tab" aria-label="Module 1: Face Pipeline"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="Enrollment" role="tab" aria-label="Module 2: Enrollment"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="Face Detection" role="tab" aria-label="Module 3: Face Detection"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="Recognition Model" role="tab" aria-label="Module 4: Recognition Model"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="Attendance Result" role="tab" aria-label="Module 5: Attendance Result"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- modules/*.html content is assembled here by build.sh -->
+<section class="module" id="module-1">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">The Face Pipeline</h1>
+      <p class="module-subtitle">A browser camera frame becomes a face box, a name, and sometimes an attendance record.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Start with the user action</h2>
+      <p>Imagine the live monitor as a checkpoint camera. The <span class="term" data-definition="The frontend is the part of the app that runs in the browser and shows screens, buttons, video, and tables to the user.">frontend</span> captures one still image, sends it to the <span class="term" data-definition="The backend is the server-side part of the app that receives requests, runs business logic, and stores data.">backend</span>, and waits for a result.</p>
+      <p>The key route is <code>POST /recognition/frame</code>. The main files are <code>app/live-monitor/page.tsx:116-144</code>, <code>lib/video-frame.ts:1-35</code>, <code>lib/cv-api.ts:215-222</code>, and <code>CV/vision.py:117-205</code>.</p>
+      <div class="flow-animation animate-in" data-steps='[{"highlight":"flow-actor-1","label":"The live monitor waits for the camera to be ready."},{"highlight":"flow-actor-2","label":"The browser draws the video into a canvas and turns it into JPEG bytes.","packet":true,"from":"actor-1","to":"actor-2"},{"highlight":"flow-actor-3","label":"The JPEG is posted to the recognition endpoint.","packet":true,"from":"actor-2","to":"actor-3"},{"highlight":"flow-actor-4","label":"The CV layer finds faces and compares them to enrolled samples.","packet":true,"from":"actor-3","to":"actor-4"},{"highlight":"flow-actor-5","label":"If it is a first match for the day, attendance is written.","packet":true,"from":"actor-4","to":"actor-5"}]'>
+  <div class="flow-actors">
+    <div class="flow-actor" id="flow-actor-1">
+      <div class="flow-actor-icon">UI</div>
+      <span>Live monitor</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-2">
+      <div class="flow-actor-icon">JPG</div>
+      <span>Frame blob</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-3">
+      <div class="flow-actor-icon">API</div>
+      <span>FastAPI route</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-4">
+      <div class="flow-actor-icon">CV</div>
+      <span>OpenCV + KNN</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-5">
+      <div class="flow-actor-icon">ATT</div>
+      <span>Attendance JSON</span>
+    </div>
+  </div>
+  <div class="flow-packet" id="flow-packet"></div>
+  <div class="flow-step-label" id="flow-label">Click Next Step to walk through the path</div>
+  <div class="flow-controls">
+    <button class="btn flow-next-btn">Next Step</button>
+    <button class="btn flow-reset-btn">Restart</button>
+    <span class="flow-progress"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The browser sends one picture at a time</h2>
+      <p>The loop is deliberately small. It sends a frame every 500 milliseconds, but uses a <span class="term" data-definition="A ref is a React object that can hold a value without forcing the screen to rerender. Here it remembers whether recognition is already running.">ref</span> to avoid overlapping requests.</p>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const interval = window.setInterval(async () =&gt; {
+  if (analysisInFlightRef.current || !videoRef.current || document.hidden) {
+    return;
+  }
+  analysisInFlightRef.current = true;
+  setAnalyzing(true);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl"><code>setInterval</code> creates the repeating heartbeat for live recognition.</p>
+      <p class="tl">If another request is still running, if video is missing, or if the tab is hidden, the function exits.</p>
+      <p class="tl">That prevents a pileup of slow recognition requests.</p>
+      <p class="tl">The page marks analysis as active so the UI can show activity.</p>
+      <p class="tl">File reference: <code>app/live-monitor/page.tsx:116-123</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">AI</div>
+        <div class="callout-content">
+          <strong class="callout-title">Steering tip</strong>
+          <p>If you ask an AI assistant to make recognition faster, mention this exact loop. The safe target is interval timing, image size, or backend speed, not launching many parallel requests.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Checkpoint conversation</h2>
+      <p>This is the mental model you should keep when explaining the feature to someone else.</p>
+      <div class="chat-window animate-in" id="chat-face-pipeline">
+  <div class="chat-messages">
+    <div class="chat-message" data-msg="0" data-sender="Live Monitor" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-1)">UI</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-1)">Live Monitor</span>
+        <p>I have camera access. Every half second I can capture a still frame.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="1" data-sender="Video Helper" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-2)">JPG</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-2)">Video Helper</span>
+        <p>I will draw the video frame to a canvas and compress it as JPEG.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="2" data-sender="API Client" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-3)">API</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-3)">API Client</span>
+        <p>I will wrap that JPEG in FormData and post it to /recognition/frame.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="3" data-sender="Vision Layer" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-4)">CV</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-4)">Vision Layer</span>
+        <p>I will find faces, compare them with samples, and return boxes and names.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="4" data-sender="Dashboard" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-5)">ATT</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-5)">Dashboard</span>
+        <p>If a first check-in was recorded, I can show the employee as present or late.</p>
+      </div>
+    </div>
+  </div>
+  <div class="chat-typing" id="chat-face-pipeline-typing" style="display:none">
+    <div class="chat-avatar" id="chat-face-pipeline-typing-avatar">?</div>
+    <div class="chat-typing-dots">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+  </div>
+  <div class="chat-controls">
+    <button class="btn chat-next-btn">Next Message</button>
+    <button class="btn chat-all-btn">Play All</button>
+    <button class="btn chat-reset-btn">Replay</button>
+    <span class="chat-progress"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-1">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. Start where repeated frames are scheduled and where in-flight requests are guarded."
+       data-explanation-wrong="Not quite. The symptom begins before the backend writes events: the browser might be sending too many frames.">
+    <h3 class="quiz-question">The live monitor starts showing duplicated recognition events. Where should you inspect first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/live-monitor/page.tsx</code>, especially the 500 ms interval and <code>analysisInFlightRef</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/payroll/page.tsx</code>, because payroll totals are later affected.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data/leaves.json</code>, because leave data changes attendance.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The code explicitly checks &lt;code&gt;document.hidden&lt;/code&gt; before sending a frame."
+       data-explanation-wrong="Look for the browser-side guard. It is not a backend failure.">
+    <h3 class="quiz-question">A user asks why recognition pauses when the tab is hidden. What is the best explanation?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>FastAPI rejects hidden tabs automatically.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The frontend skips capture while <code>document.hidden</code> is true.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>OpenCV cannot decode images from a hidden camera.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. Larger or higher-quality JPEGs preserve more face detail but cost more network and CPU time."
+       data-explanation-wrong="The tradeoff is in the frame capture options, not the sidebar or payroll UI.">
+    <h3 class="quiz-question">If you want more accurate recognition but slower uploads, which setting would you consider?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Change the sidebar route order.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Reduce payroll month length.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Increase <code>maxWidth</code> or <code>quality</code> in <code>captureVideoFrame</code> calls.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-1')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-1')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">Enrollment: Teaching The System A Face</h1>
+      <p class="module-subtitle">Before recognition can work, the project must collect clean face crops for each employee.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Enrollment is the ID photo session</h2>
+      <p>The face registry page first creates an employee, then captures 18 camera frames. The backend accepts only frames with exactly one detected face.</p>
+      <div class="flow-steps animate-in">
+        <div class="flow-step"><div class="flow-step-num">1</div><p>Create employee record</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">2</div><p>Capture 18 JPEG frames</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">3</div><p>Upload as <span class="term" data-definition="FormData is a browser object for sending files and fields in one request, like a filled form with attachments.">FormData</span></p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">4</div><p>Save accepted face crops</p></div>
+      </div>
+      <p>File references: <code>app/face-registration/page.tsx:165-180</code>, <code>lib/cv-api.ts:200-212</code>, <code>CV/server.py:253-263</code>, <code>CV/vision.py:81-114</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The frontend creates the sample batch</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const frames: Blob[] = [];
+
+for (let index = 0; index &lt; 18; index += 1) {
+  frames.push(await captureVideoFrame(videoRef.current, { maxWidth: 720, quality: 0.85 }));
+  await new Promise((resolve) =&gt; window.setTimeout(resolve, 140));
+}
+
+const result = await enrollEmployee(employee.id, frames);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Start with an empty list of image files.</p>
+      <p class="tl">Repeat exactly 18 times so one enrollment has many examples.</p>
+      <p class="tl">Capture the current video frame as a JPEG blob.</p>
+      <p class="tl">Wait 140 milliseconds so the samples are not all identical.</p>
+      <p class="tl">Send the full batch to the backend for the selected employee.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:173-180</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The backend rejects messy samples</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">faces = detect_faces(state, frame)
+if len(faces) != 1:
+    reason = "no face detected" if len(faces) == 0 else "multiple faces detected"
+    rejected_reasons.append(f"Frame {index + 1}: {reason}")
+    continue
+
+x, y, width, height = faces[0]
+crop = frame[y : y + height, x : x + width]</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Run face detection on each uploaded frame.</p>
+      <p class="tl">If the frame does not contain exactly one face, do not train from it.</p>
+      <p class="tl">Save a human-readable reason so the UI can explain what happened.</p>
+      <p class="tl">For a clean frame, take the detected rectangle.</p>
+      <p class="tl">Crop just the face area and save that as a sample.</p>
+      <p class="tl">File reference: <code>CV/vision.py:92-100</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">CS</div>
+        <div class="callout-content">
+          <strong class="callout-title">Key insight</strong>
+          <p>Training data quality matters more than training data quantity. Bad examples teach the model bad habits.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-2">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The backend already records rejected reasons such as no face or multiple faces."
+       data-explanation-wrong="The useful clue is the backend rejection reason returned to the frontend.">
+    <h3 class="quiz-question">Enrollment accepts only 3 of 18 frames. What should you check first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Payroll totals, because rejected samples affect salary.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The <code>rejectedReasons</code> returned by <code>CV/vision.py</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The Next.js root layout metadata.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. Small changes in head pose and lighting make the saved examples more useful."
+       data-explanation-wrong="The wait is about sample variety, not avoiding a server route.">
+    <h3 class="quiz-question">Why does the browser wait 140 ms between samples?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To capture slightly different frames instead of 18 near-duplicates.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To let payroll calculate the month.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To avoid CORS checks.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. You must update both stored face files and employee sample metadata."
+       data-explanation-wrong="Retake affects face sample storage and employee state, not only the button label.">
+    <h3 class="quiz-question">If you add a retake feature, which two areas must stay in sync?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the button text in the registration page.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the sidebar route list.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The files under <code>CV/data/face_samples/&lt;id&gt;</code> and the employee <code>sampleCount</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-2')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-2')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Finding A Face Rectangle</h1>
+      <p class="module-subtitle">OpenCV does not know names yet. First it searches the image for face-shaped regions.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Detection is the inspection station</h2>
+      <p>The project uses a Haar cascade file, <code>CV/haar_face.xml</code>, as a prebuilt face detector. A <span class="term" data-definition="A classifier is code or data that decides which category something belongs to, such as face versus not-face.">classifier</span> scans the grayscale image and returns rectangles.</p>
+      <div class="file-tree animate-in">
+        <div class="ft-folder"><span class="ft-name">CV</span><span class="ft-desc">Computer vision backend package</span>
+          <div class="ft-children">
+            <div class="ft-file"><span class="ft-name">haar_face.xml</span><span class="ft-desc">Pretrained frontal face detector</span></div>
+            <div class="ft-file"><span class="ft-name">vision.py</span><span class="ft-desc">Loads the detector and calls detectMultiScale</span></div>
+          </div>
+        </div>
+      </div>
+      <p>File references: <code>CV/vision.py:35-50</code> and <code>CV/vision.py:218-227</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The detector is loaded once</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def create_vision_state() -&gt; VisionState:
+    cascade_path = Path(__file__).resolve().parent / "haar_face.xml"
+    face_cascade = cv2.CascadeClassifier(str(cascade_path))
+    if face_cascade.empty():
+        raise RuntimeError(f"Failed to load Haar cascade from {cascade_path}")</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Build the path to the XML detector next to <code>vision.py</code>.</p>
+      <p class="tl">Ask OpenCV to load that detector into memory.</p>
+      <p class="tl">Fail early if the XML file is missing or invalid.</p>
+      <p class="tl">This runs during backend startup, before users upload frames.</p>
+      <p class="tl">File reference: <code>CV/vision.py:35-39</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The face box is normalized for the frontend</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def detect_faces(state: VisionState, frame: np.ndarray) -&gt; list[tuple[int, int, int, int]]:
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = state.face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5)
+    return [(int(x), int(y), int(width), int(height)) for (x, y, width, height) in faces]</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Accept one decoded image frame.</p>
+      <p class="tl">Convert it to grayscale because the detector works on light/dark patterns.</p>
+      <p class="tl">Scan for face-like rectangles using OpenCV.</p>
+      <p class="tl">Return plain integer boxes: x, y, width, height.</p>
+      <p class="tl">File reference: <code>CV/vision.py:218-221</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">UI</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why ratios matter</strong>
+          <p>The backend later converts pixel boxes into percentages. That lets <code>CameraFeed</code> draw overlays correctly even when the video is resized in the browser.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-3">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. &lt;code&gt;create_vision_state&lt;/code&gt; loads &lt;code&gt;CV/haar_face.xml&lt;/code&gt; at startup."
+       data-explanation-wrong="The face detector is an XML file loaded by OpenCV, not a React component.">
+    <h3 class="quiz-question">The backend starts failing with a message about the Haar cascade. Which file is the likely missing dependency?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>components/ui/button.tsx</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/haar_face.xml</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data/leaves.json</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The backend returns ratios and the frontend multiplies them into CSS percentages."
+       data-explanation-wrong="This is most likely a coordinate conversion or overlay issue.">
+    <h3 class="quiz-question">A face is detected but the box appears in the wrong place on screen. Which concept should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Pixel-to-ratio conversion and overlay CSS in <code>CameraFeed</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The monthly payroll query.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee delete confirmation.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. The detector is looking for contrast patterns, so color is unnecessary."
+       data-explanation-wrong="Grayscale is used because the chosen detector works on light and dark pattern features.">
+    <h3 class="quiz-question">Why convert the frame to grayscale before detection?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because JPEG files cannot store color.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because FastAPI only accepts black and white uploads.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the Haar cascade scans light and dark patterns, not identity colors.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-3')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-3')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Recognition: Comparing A Face To Samples</h1>
+      <p class="module-subtitle">After a rectangle is found, the model asks which enrolled employee looks nearest.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Recognition is a closest-match lookup</h2>
+      <p>The model is a <span class="term" data-definition="KNN means K-nearest neighbors. It predicts a label by finding the most similar saved examples.">KNN</span> classifier from scikit-learn. Each saved face crop becomes a flat list of numbers, and each list is labeled with the employee ID.</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card" style="border-top-color: var(--color-actor-1)"><div class="pattern-icon" style="background: var(--color-actor-1)">50</div><h4 class="pattern-title">Resize</h4><p class="pattern-desc">Every face becomes 50 by 50 pixels so all samples have the same shape.</p></div>
+        <div class="pattern-card" style="border-top-color: var(--color-actor-2)"><div class="pattern-icon" style="background: var(--color-actor-2)">1D</div><h4 class="pattern-title">Flatten</h4><p class="pattern-desc">The image grid becomes one long numeric fingerprint.</p></div>
+        <div class="pattern-card" style="border-top-color: var(--color-actor-3)"><div class="pattern-icon" style="background: var(--color-actor-3)">ID</div><h4 class="pattern-title">Label</h4><p class="pattern-desc">The fingerprint is stored with the employee ID as its answer key.</p></div>
+      </div>
+      <p>File references: <code>CV/vision.py:58-79</code>, <code>CV/vision.py:224-227</code>, and <code>CV/vision.py:148-171</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Training reads all saved samples</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">for employee in data.list_employees():
+    sample_dir = data.face_samples_dir(employee["id"])
+    for sample_path in sorted(sample_dir.glob("*.jpg")):
+        image = cv2.imread(str(sample_path))
+        if image is None:
+            continue
+        samples.append(preprocess_face(image))
+        labels.append(str(employee["id"]))</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Loop over every employee record.</p>
+      <p class="tl">Open that employee's face sample folder.</p>
+      <p class="tl">Read each JPEG face crop from disk.</p>
+      <p class="tl">Skip unreadable images instead of crashing training.</p>
+      <p class="tl">Convert the image into the numeric shape the model expects.</p>
+      <p class="tl">Store the employee ID as the label for that sample.</p>
+      <p class="tl">File reference: <code>CV/vision.py:62-69</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Unknown is a deliberate result</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">distances, _ = model.kneighbors(sample, n_neighbors=1)
+distance = float(distances[0][0])
+predicted_employee_id = str(model.predict(sample)[0])
+
+if (
+    predicted_employee_id not in employees_by_code
+    or distance &gt; state.unknown_distance_threshold
+):</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Ask the KNN model for the nearest saved face sample.</p>
+      <p class="tl">Read how far away that nearest sample is.</p>
+      <p class="tl">Ask the model which employee ID it predicts.</p>
+      <p class="tl">Reject the prediction if the employee no longer exists.</p>
+      <p class="tl">Also reject it if the distance is too large.</p>
+      <p class="tl">That threshold is what turns a weak guess into <code>unknown</code>.</p>
+      <p class="tl">File reference: <code>CV/vision.py:150-157</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-warning">
+        <div class="callout-icon">DBG</div>
+        <div class="callout-content">
+          <strong class="callout-title">Debugging smell</strong>
+          <p>If everyone is unknown, inspect sample quality and <code>CV_UNKNOWN_DISTANCE_THRESHOLD</code>. If everyone matches the wrong person, inspect training folders and employee IDs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-4">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. The model may still have learned samples for the deleted employee until it is rebuilt."
+       data-explanation-wrong="The retrain is about removing old learned examples from the active model.">
+    <h3 class="quiz-question">After deleting an employee, why must the model retrain?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the KNN model keeps learned samples in memory.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the sidebar route cache must refresh.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because payroll month names are generated at startup.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Yes. The unknown distance threshold controls how far a nearest sample can be before rejecting the match."
+       data-explanation-wrong="The relevant setting is the distance threshold inside the vision state.">
+    <h3 class="quiz-question">Recognition is too strict and labels real employees as unknown. Which setting is most relevant?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>NEXT_PUBLIC_CV_API_BASE_URL</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_UNKNOWN_DISTANCE_THRESHOLD</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_ALLOWED_ORIGINS</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Exactly. Machine learning input arrays need consistent shape."
+       data-explanation-wrong="The key reason is that every sample must have the same number of values.">
+    <h3 class="quiz-question">Why are faces resized to one fixed size before training?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So React can draw a rounded rectangle.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So JSON files are sorted alphabetically.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So every saved face becomes the same-length numeric vector.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-4')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-4')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">From Match To Attendance</h1>
+      <p class="module-subtitle">The final face-detection result becomes operational data: present, late, seen, or unknown.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">A match can create a daily check-in</h2>
+      <p>Recognition is not just a label on screen. If the match is valid and no attendance exists for that employee today, the backend writes a record to <code>CV/data/attendance.json</code>.</p>
+      <div class="badge-list animate-in">
+        <div class="badge-item"><code class="badge-code">present</code><span class="badge-desc">Detected at or before scheduled check-in.</span></div>
+        <div class="badge-item"><code class="badge-code">late</code><span class="badge-desc">Detected after scheduled check-in.</span></div>
+        <div class="badge-item"><code class="badge-code">seen</code><span class="badge-desc">Recognized again, but attendance was already recorded today.</span></div>
+        <div class="badge-item"><code class="badge-code">unknown</code><span class="badge-desc">A face was found, but no confident employee match was accepted.</span></div>
+      </div>
+      <p>File references: <code>CV/vision.py:172-200</code>, <code>CV/data.py:258-286</code>, <code>components/live-monitor/recognition-feed.tsx:41-107</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">First check-in wins</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">already_recorded = any(
+    record["id"] == employee["id"] and record["date"] == target_date
+    for record in attendance_records
+)
+if already_recorded:
+    return None</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Look through existing attendance rows.</p>
+      <p class="tl">Find any row with the same employee ID and the same date.</p>
+      <p class="tl">If one exists, stop and return nothing.</p>
+      <p class="tl">This prevents duplicate check-ins for one person on one day.</p>
+      <p class="tl">File reference: <code>CV/data.py:267-273</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The UI shows both detection and business meaning</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-tsx">&lt;Badge variant={recognition.attendanceStatus === "late" ? "destructive" : "secondary"}&gt;
+  {recognition.attendanceRecorded ? recognition.attendanceStatus : "seen"}
+&lt;/Badge&gt;</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Choose a stronger badge style when the recognition is late.</p>
+      <p class="tl">If the backend created attendance now, show present or late.</p>
+      <p class="tl">If the employee was already recorded today, show seen instead.</p>
+      <p class="tl">File reference: <code>components/live-monitor/recognition-feed.tsx:103-106</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">OPS</div>
+        <div class="callout-content">
+          <strong class="callout-title">Business rule boundary</strong>
+          <p>The backend owns whether attendance is recorded. The frontend only displays the decision. That is why refreshing the UI does not create duplicate attendance.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-5">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The backend recognized them, but no new attendance row was created."
+       data-explanation-wrong="Seen means recognition happened without creating a fresh attendance record.">
+    <h3 class="quiz-question">A recognized employee shows as seen instead of present. What does that mean?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee was unknown.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee already had an attendance record for the day.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee is missing from the sidebar.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. &lt;code&gt;record_attendance_if_first&lt;/code&gt; is the duplicate-prevention function."
+       data-explanation-wrong="The rule is in the data layer function that writes attendance, not only in visual components.">
+    <h3 class="quiz-question">If attendance duplicates appear for the same employee and date, where is the business rule?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/data.py:258-286</code></span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>components/ui/badge.tsx</code></span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/layout.tsx</code></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. It keeps the official attendance decision next to the write operation."
+       data-explanation-wrong="The status is business data, so the backend is the correct source of truth.">
+    <h3 class="quiz-question">Why compute present versus late on the backend?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because React cannot compare times.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because CSS badges require Python.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because the server is the source of truth for attendance records.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-5')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-5')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
+  <section class="course-switcher" aria-label="Course navigation">
+  <a class="course-switch-link previous" href="../index.html">
+    <span class="course-switch-kicker">Course overview</span>
+    <span class="course-switch-title">Back to all courses</span>
+  </a>
+  <a class="course-switch-link next" href="../02-server/index.html">
+    <span class="course-switch-kicker">Next course</span>
+    <span class="course-switch-title">How The Server Works</span>
+  </a>
+  </section>
+  </main>
+
+</body>
+</html>

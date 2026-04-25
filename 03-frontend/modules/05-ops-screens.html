@@ -1,0 +1,154 @@
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">Dashboard, Employees, Leave, Payroll</h1>
+      <p class="module-subtitle">The remaining screens turn backend data into operational workflows for managers.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Each page owns one workflow</h2>
+      <p>The frontend pattern is consistent: page loads data from <code>cv-api.ts</code>, stores it in React state, renders a table or feed, and exposes a refresh or mutation action.</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-1)">D</div><h4 class="pattern-title">Dashboard</h4><p class="pattern-desc">Calls <code>getTodayAttendance</code> and renders tabs for all, present, late, and absent.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-2)">E</div><h4 class="pattern-title">Employees</h4><p class="pattern-desc">Loads employees, edits wage/schedule, and deletes records.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-3)">L</div><h4 class="pattern-title">Leave</h4><p class="pattern-desc">Creates approved leave rows tied to employee IDs.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-4)">P</div><h4 class="pattern-title">Payroll</h4><p class="pattern-desc">Requests monthly payroll and renders salary totals.</p></div>
+      </div>
+      <p>File references: <code>app/dashboard/page.tsx:15-77</code>, <code>app/employees/page.tsx:12-113</code>, <code>app/leave-management/page.tsx:24-216</code>, <code>app/payroll/page.tsx:24-149</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Dashboard data load is the page pattern</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const loadAttendance = React.useCallback(async () =&gt; {
+  try {
+    setLoading(true);
+    setError(null);
+    setEmployees(await getTodayAttendance());
+    setLastUpdated(</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Create a reusable async loader for the page.</p>
+      <p class="tl">Turn on loading and clear any old error.</p>
+      <p class="tl">Ask the API client for today's attendance rows.</p>
+      <p class="tl">Store rows in React state so the feed rerenders.</p>
+      <p class="tl">Update a visible last-refreshed time.</p>
+      <p class="tl">File reference: <code>app/dashboard/page.tsx:21-32</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Employee edits flow upward</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">async function handleSaveSchedule(
+  id: number,
+  data: { monthlyWage: number; schedule: Employee["schedule"] },
+) {
+  try {
+    setSavingEmployeeId(id);
+    const updatedEmployee = await updateEmployee(id, data);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">The page receives an employee ID and new wage/schedule data.</p>
+      <p class="tl">It records which employee is saving so the UI can disable controls.</p>
+      <p class="tl">It sends the patch through the shared API client.</p>
+      <p class="tl">Then it replaces the updated employee in local state.</p>
+      <p class="tl">File reference: <code>app/employees/page.tsx:35-44</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">PAT</div>
+        <div class="callout-content">
+          <strong class="callout-title">Common React pattern</strong>
+          <p>Child components collect user input, but parent pages often own data loading and saving because they understand the full page state.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-frontend-5">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Update the TypeScript interface and whichever dashboard/feed component displays it."
+       data-explanation-wrong="Backend fields cross into &lt;code&gt;cv-api.ts&lt;/code&gt; types and display components.">
+    <h3 class="quiz-question">You add a new backend field to attendance rows. Which frontend locations are likely affected?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>AttendanceTodayItem</code> in <code>cv-api.ts</code> and dashboard components.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>CV/requirements.txt</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the face cascade XML.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Exactly. It stores the active employee ID rather than a single global boolean."
+       data-explanation-wrong="The employee page tracks the specific ID being saved or deleted.">
+    <h3 class="quiz-question">A save button should show only one row as saving. What state pattern does this repo use?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Delete every row before saving.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Store <code>savingEmployeeId</code> and compare it to each row ID.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Put the saving state in <code>haar_face.xml</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. &lt;code&gt;loadPayroll&lt;/code&gt; depends on &lt;code&gt;month&lt;/code&gt; and calls &lt;code&gt;getMonthlyPayroll(month)&lt;/code&gt;."
+       data-explanation-wrong="Payroll data is loaded from the payroll page state and API call.">
+    <h3 class="quiz-question">The payroll page shows old totals after changing the month. Where is month state used?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The live monitor detection overlay.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The face registration sample loop.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>app/payroll/page.tsx</code>, especially <code>month</code> and <code>loadPayroll</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-frontend-5')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-frontend-5')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

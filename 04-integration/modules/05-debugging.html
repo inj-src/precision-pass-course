@@ -1,0 +1,153 @@
+<section class="module" id="module-5">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">Configuration And Debugging Map</h1>
+      <p class="module-subtitle">When something breaks, follow the boundary: browser, API helper, FastAPI route, vision/data helper, stored file.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Debug from the nearest boundary</h2>
+      <p>Integration bugs are easiest when you ask: did the browser capture the right data, did <code>cv-api.ts</code> send the right request, did FastAPI receive it, did the helper write the expected file?</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-1)">URL</div><h4 class="pattern-title">Base URL</h4><p class="pattern-desc"><code>NEXT_PUBLIC_CV_API_BASE_URL</code> points the frontend to the backend.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-2)">CORS</div><h4 class="pattern-title">Allowed origins</h4><p class="pattern-desc"><code>CV_ALLOWED_ORIGINS</code> controls which browser origins can call FastAPI.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-3)">ENV</div><h4 class="pattern-title">Vision knobs</h4><p class="pattern-desc">Recognition cooldowns and unknown threshold are environment-controlled.</p></div>
+      </div>
+      <p>References: <code>lib/cv-api.ts:132-137</code>, <code>CV/server.py:156-161</code>, <code>CV/vision.py:41-50</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">CORS is configured from environment</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">def allowed_origins() -&gt; list[str]:
+    raw = os.getenv(
+        "CV_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    )
+    return [origin.strip() for origin in raw.split(",") if origin.strip()]</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Define a helper for browser origins allowed to call the API.</p>
+      <p class="tl">Read a comma-separated environment variable if present.</p>
+      <p class="tl">Default to the usual local Next.js dev addresses.</p>
+      <p class="tl">Split and clean the list before passing it into CORS middleware.</p>
+      <p class="tl">File reference: <code>CV/server.py:156-161</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Health is the first backend check</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">@app.get("/health", response_model=HealthResponse)
+def health() -&gt; dict:
+    vision_state = app.state.vision_state
+    return {
+        "status": "ok",
+        "modelReady": vision.is_model_ready(vision_state),
+        "employeeCount": len(data.list_employees()),
+        "sampleCount": vision_state.sample_count,</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Expose a simple status endpoint.</p>
+      <p class="tl">Read the shared vision state created at startup.</p>
+      <p class="tl">Return whether the model is ready.</p>
+      <p class="tl">Return employee count and sample count for quick diagnosis.</p>
+      <p class="tl">File reference: <code>CV/server.py:213-221</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-warning">
+        <div class="callout-icon">DBG</div>
+        <div class="callout-content">
+          <strong class="callout-title">Debug order</strong>
+          <p>Before debugging face math, check <code>/health</code>. If the backend is down or modelReady is false, recognition cannot work reliably.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-integration-5">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. Check the frontend origin and &lt;code&gt;CV_ALLOWED_ORIGINS&lt;/code&gt; used by FastAPI CORS middleware."
+       data-explanation-wrong="CORS errors are about browser origin permission at the API boundary.">
+    <h3 class="quiz-question">The browser console shows a CORS error. Where should you look?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The payroll table footer.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_ALLOWED_ORIGINS</code> and <code>allowed_origins()</code> in <code>CV/server.py</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The face sample filename timestamp only.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Yes. Confirm the backend process and &lt;code&gt;/health&lt;/code&gt; before deeper debugging."
+       data-explanation-wrong="Start by checking the backend process and health route.">
+    <h3 class="quiz-question">The UI says failed to reach CV backend. What is the first fast check?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Run the FastAPI server and visit <code>http://127.0.0.1:8000/health</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Delete all CSS files.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Change every employee name.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Correct. The threshold lives in vision state and changes recognition behavior."
+       data-explanation-wrong="Unknown tuning belongs in the vision configuration, not display-only components.">
+    <h3 class="quiz-question">You want to tune false unknown recognitions. Which boundary should you change carefully?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The route title text.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The sidebar icon order.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV_UNKNOWN_DISTANCE_THRESHOLD</code> and sample quality.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-integration-5')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-integration-5')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

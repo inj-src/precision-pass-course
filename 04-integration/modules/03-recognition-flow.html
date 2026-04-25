@@ -1,0 +1,147 @@
+<section class="module" id="module-3">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Live Recognition To Dashboard</h1>
+      <p class="module-subtitle">A camera frame can update the overlay immediately and later appear as attendance on the dashboard.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Real-time result, persistent side effect</h2>
+      <p>The live monitor gets immediate <span class="term" data-definition="A response is the data sent back by the server after a request. In this project, recognition responses include detections and any created attendance records.">response</span> data for overlays. Separately, the backend may write attendance, which the dashboard reads through a different route.</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-1)">BOX</div><h4 class="pattern-title">Immediate</h4><p class="pattern-desc">Detection boxes and names update in live monitor state.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-2)">LOG</div><h4 class="pattern-title">Recent feed</h4><p class="pattern-desc">Recognition events are buffered in memory and polled by the sidebar feed.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-3)">ATT</div><h4 class="pattern-title">Persistent</h4><p class="pattern-desc">First daily matches are saved to <code>attendance.json</code>.</p></div>
+      </div>
+      <p>References: <code>app/live-monitor/page.tsx:116-144</code>, <code>CV/vision.py:117-205</code>, <code>CV/data.py:258-286</code>, <code>app/dashboard/page.tsx:21-32</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Recognition updates local UI state</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const result = await recognizeFrame(frame);
+setDetections(result.detections);
+if (result.createdAttendance.length &gt; 0) {
+  void loadRecentRecognitions();
+}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Send one captured frame to the server.</p>
+      <p class="tl">Use returned detections to draw overlays on the current video.</p>
+      <p class="tl">If a new attendance row was created, refresh the recent recognition list.</p>
+      <p class="tl">The dashboard will see persistent attendance when it asks its route.</p>
+      <p class="tl">File reference: <code>app/live-monitor/page.tsx:129-133</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The backend bundles both outcomes</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">return {
+    "detections": detections,
+    "createdAttendance": created_attendance,
+}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Return every face detection for the overlay.</p>
+      <p class="tl">Also return only attendance rows that were newly created now.</p>
+      <p class="tl">This lets the frontend distinguish a fresh check-in from a repeat sighting.</p>
+      <p class="tl">File reference: <code>CV/vision.py:202-205</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-info">
+        <div class="callout-icon">STATE</div>
+        <div class="callout-content">
+          <strong class="callout-title">Two kinds of state</strong>
+          <p>Detection boxes are temporary UI state. Attendance records are persistent business state. Confusing those two causes many bugs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-integration-3">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. Detection can be unknown or repeat seen without creating attendance."
+       data-explanation-wrong="A detection overlay does not always mean an attendance row was written.">
+    <h3 class="quiz-question">Boxes show on live monitor, but dashboard still says absent. What is the likely explanation?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Every box always writes attendance.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The detection did not create a new attendance record, or the dashboard has not refreshed.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The payroll page must be open first.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The backend returns &lt;code&gt;createdAttendance&lt;/code&gt; and writes through &lt;code&gt;record_attendance_if_first&lt;/code&gt;."
+       data-explanation-wrong="The badge display only reflects the server decision.">
+    <h3 class="quiz-question">Where should you debug whether a match actually wrote attendance?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>CV/vision.py</code> around <code>created_attendance</code> and <code>CV/data.py</code> attendance write.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the sidebar icon list.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the global CSS variables.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. One uploaded frame can contain multiple faces, so multiple attendance rows might be created."
+       data-explanation-wrong="The route processes all detected faces in a frame.">
+    <h3 class="quiz-question">Why is <code>createdAttendance</code> an array, not a single object?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because payroll requires arrays for styling.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because FastAPI cannot return objects.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because one frame may contain more than one recognized employee.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-integration-3')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-integration-3')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

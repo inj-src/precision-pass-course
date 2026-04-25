@@ -1,0 +1,161 @@
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">Enrollment: Teaching The System A Face</h1>
+      <p class="module-subtitle">Before recognition can work, the project must collect clean face crops for each employee.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Enrollment is the ID photo session</h2>
+      <p>The face registry page first creates an employee, then captures 18 camera frames. The backend accepts only frames with exactly one detected face.</p>
+      <div class="flow-steps animate-in">
+        <div class="flow-step"><div class="flow-step-num">1</div><p>Create employee record</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">2</div><p>Capture 18 JPEG frames</p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">3</div><p>Upload as <span class="term" data-definition="FormData is a browser object for sending files and fields in one request, like a filled form with attachments.">FormData</span></p></div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step"><div class="flow-step-num">4</div><p>Save accepted face crops</p></div>
+      </div>
+      <p>File references: <code>app/face-registration/page.tsx:165-180</code>, <code>lib/cv-api.ts:200-212</code>, <code>CV/server.py:253-263</code>, <code>CV/vision.py:81-114</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The frontend creates the sample batch</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const frames: Blob[] = [];
+
+for (let index = 0; index &lt; 18; index += 1) {
+  frames.push(await captureVideoFrame(videoRef.current, { maxWidth: 720, quality: 0.85 }));
+  await new Promise((resolve) =&gt; window.setTimeout(resolve, 140));
+}
+
+const result = await enrollEmployee(employee.id, frames);</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Start with an empty list of image files.</p>
+      <p class="tl">Repeat exactly 18 times so one enrollment has many examples.</p>
+      <p class="tl">Capture the current video frame as a JPEG blob.</p>
+      <p class="tl">Wait 140 milliseconds so the samples are not all identical.</p>
+      <p class="tl">Send the full batch to the backend for the selected employee.</p>
+      <p class="tl">File reference: <code>app/face-registration/page.tsx:173-180</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The backend rejects messy samples</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">faces = detect_faces(state, frame)
+if len(faces) != 1:
+    reason = "no face detected" if len(faces) == 0 else "multiple faces detected"
+    rejected_reasons.append(f"Frame {index + 1}: {reason}")
+    continue
+
+x, y, width, height = faces[0]
+crop = frame[y : y + height, x : x + width]</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Run face detection on each uploaded frame.</p>
+      <p class="tl">If the frame does not contain exactly one face, do not train from it.</p>
+      <p class="tl">Save a human-readable reason so the UI can explain what happened.</p>
+      <p class="tl">For a clean frame, take the detected rectangle.</p>
+      <p class="tl">Crop just the face area and save that as a sample.</p>
+      <p class="tl">File reference: <code>CV/vision.py:92-100</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">CS</div>
+        <div class="callout-content">
+          <strong class="callout-title">Key insight</strong>
+          <p>Training data quality matters more than training data quantity. Bad examples teach the model bad habits.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-face-2">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The backend already records rejected reasons such as no face or multiple faces."
+       data-explanation-wrong="The useful clue is the backend rejection reason returned to the frontend.">
+    <h3 class="quiz-question">Enrollment accepts only 3 of 18 frames. What should you check first?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Payroll totals, because rejected samples affect salary.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The <code>rejectedReasons</code> returned by <code>CV/vision.py</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The Next.js root layout metadata.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. Small changes in head pose and lighting make the saved examples more useful."
+       data-explanation-wrong="The wait is about sample variety, not avoiding a server route.">
+    <h3 class="quiz-question">Why does the browser wait 140 ms between samples?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To capture slightly different frames instead of 18 near-duplicates.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To let payroll calculate the month.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>To avoid CORS checks.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. You must update both stored face files and employee sample metadata."
+       data-explanation-wrong="Retake affects face sample storage and employee state, not only the button label.">
+    <h3 class="quiz-question">If you add a retake feature, which two areas must stay in sync?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the button text in the registration page.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only the sidebar route list.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The files under <code>CV/data/face_samples/&lt;id&gt;</code> and the employee <code>sampleCount</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-face-2')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-face-2')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

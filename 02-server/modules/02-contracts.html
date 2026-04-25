@@ -1,0 +1,147 @@
+<section class="module" id="module-2">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">Request And Response Contracts</h1>
+      <p class="module-subtitle">Pydantic models are the server's promise about what data enters and leaves each endpoint.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">A contract is a form with rules</h2>
+      <p>A <span class="term" data-definition="A Pydantic model is a Python class that describes the shape and validation rules for data entering or leaving FastAPI routes.">Pydantic model</span> says which fields exist, which fields are optional, and which values are legal.</p>
+      <div class="pattern-cards animate-in">
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-1)">IN</div><h4 class="pattern-title">Create models</h4><p class="pattern-desc">Define what the browser must send, such as name, department, wage, and schedule.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-2)">UPD</div><h4 class="pattern-title">Update models</h4><p class="pattern-desc">Allow partial edits by making fields optional.</p></div>
+        <div class="pattern-card"><div class="pattern-icon" style="background: var(--color-actor-3)">OUT</div><h4 class="pattern-title">Response models</h4><p class="pattern-desc">Document what the route returns to the frontend.</p></div>
+      </div>
+      <p>File references: <code>CV/server.py:19-44</code>, <code>CV/server.py:46-153</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Employee input has validation</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">class EmployeeCreate(BaseModel):
+    fullName: str = Field(min_length=1, max_length=120)
+    department: str = Field(min_length=1, max_length=120)
+    monthlyWage: float = Field(default=0, ge=0)
+    schedule: Schedule</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Declare the payload needed to create one employee.</p>
+      <p class="tl">Name and department cannot be empty and cannot be too long.</p>
+      <p class="tl">Monthly wage defaults to zero and cannot be negative.</p>
+      <p class="tl">Schedule must match the nested <code>Schedule</code> model.</p>
+      <p class="tl">File reference: <code>CV/server.py:24-28</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Routes attach contracts to URLs</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">@app.post("/employees", response_model=EmployeeRecord, status_code=201)
+def create_employee(payload: EmployeeCreate) -&gt; dict:
+    return data.create_employee(payload.model_dump())</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Register a POST endpoint at <code>/employees</code>.</p>
+      <p class="tl">Promise that the response will look like <code>EmployeeRecord</code>.</p>
+      <p class="tl">Accept a validated <code>EmployeeCreate</code> object.</p>
+      <p class="tl">Convert the model to a plain dictionary for the data layer.</p>
+      <p class="tl">File reference: <code>CV/server.py:229-231</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">API</div>
+        <div class="callout-content">
+          <strong class="callout-title">Vocabulary to use with AI</strong>
+          <p>Say "update the request and response contract" when a feature needs new fields in both backend models and frontend TypeScript interfaces.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-server-2">
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. Create/update/record models must know the new field before routes can validate and return it."
+       data-explanation-wrong="A new data field needs contract changes, not only a UI input.">
+    <h3 class="quiz-question">You add an employee phone number. What must change on the server?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Relevant Pydantic models in <code>CV/server.py</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>components/ui/table.tsx</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only <code>CV/haar_face.xml</code>.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Exactly. PATCH requests often update only some fields."
+       data-explanation-wrong="Optional fields let the route accept partial updates safely.">
+    <h3 class="quiz-question">Why does <code>EmployeeUpdate</code> use optional fields?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So employees can have no ID.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So a PATCH request can send only the fields that changed.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>So face detection can run faster.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. A 422 often means the posted JSON does not match the Pydantic contract."
+       data-explanation-wrong="Think about the boundary where incoming JSON is validated.">
+    <h3 class="quiz-question">A frontend request gets a 422 validation error after adding a feature. What is the likely mismatch?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The CSS border radius is too small.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The webcam is paused.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The frontend payload shape does not match the server model.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-server-2')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-server-2')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

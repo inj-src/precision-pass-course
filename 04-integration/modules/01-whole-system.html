@@ -1,0 +1,202 @@
+<section class="module" id="module-1">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">The Whole System Map</h1>
+      <p class="module-subtitle">Precision Pass is a Next.js frontend connected to a FastAPI computer-vision backend with JSON file storage.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Four layers cooperate</h2>
+      <p>The project is integrated through clear boundaries: browser pages, API helper functions, Python routes, and backend data/vision modules.</p>
+      <div class="flow-animation animate-in" data-steps='[{"highlight":"flow-actor-1","label":"A user clicks a button or opens a page in the browser."},{"highlight":"flow-actor-2","label":"The page calls a typed API helper.","packet":true,"from":"actor-1","to":"actor-2"},{"highlight":"flow-actor-3","label":"FastAPI receives the HTTP request and validates it.","packet":true,"from":"actor-2","to":"actor-3"},{"highlight":"flow-actor-4","label":"Vision code handles image-specific work when needed.","packet":true,"from":"actor-3","to":"actor-4"},{"highlight":"flow-actor-5","label":"Data helpers persist records in JSON and image folders.","packet":true,"from":"actor-3","to":"actor-5"}]'>
+  <div class="flow-actors">
+    <div class="flow-actor" id="flow-actor-1">
+      <div class="flow-actor-icon">NX</div>
+      <span>Next.js pages</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-2">
+      <div class="flow-actor-icon">TS</div>
+      <span>cv-api.ts</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-3">
+      <div class="flow-actor-icon">PY</div>
+      <span>FastAPI</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-4">
+      <div class="flow-actor-icon">CV</div>
+      <span>vision.py</span>
+    </div>
+    <div class="flow-actor" id="flow-actor-5">
+      <div class="flow-actor-icon">JSON</div>
+      <span>data.py + files</span>
+    </div>
+  </div>
+  <div class="flow-packet" id="flow-packet"></div>
+  <div class="flow-step-label" id="flow-label">Click Next Step to walk through the path</div>
+  <div class="flow-controls">
+    <button class="btn flow-next-btn">Next Step</button>
+    <button class="btn flow-reset-btn">Restart</button>
+    <span class="flow-progress"></span>
+  </div>
+</div>
+      <p>Key references: <code>lib/cv-api.ts:132-260</code>, <code>CV/server.py:189-421</code>, <code>CV/vision.py:35-306</code>, <code>CV/data.py:9-286</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Integration is mostly function calls across boundaries</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-typescript">const API_BASE_URL =
+  process.env.NEXT_PUBLIC_CV_API_BASE_URL?.replace(/\/$/, "") ?? "http://127.0.0.1:8000";
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Read the backend base URL from environment configuration if available.</p>
+      <p class="tl">Remove a trailing slash to avoid malformed URLs.</p>
+      <p class="tl">Fall back to the local FastAPI server on port 8000.</p>
+      <p class="tl">Create a helper that combines the base URL with a route path.</p>
+      <p class="tl">File reference: <code>lib/cv-api.ts:132-137</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">The layers speak in a group chat</h2>
+      <div class="chat-window animate-in" id="chat-integration-system">
+  <div class="chat-messages">
+    <div class="chat-message" data-msg="0" data-sender="Next.js Page" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-1)">NX</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-1)">Next.js Page</span>
+        <p>I know what the user wants and what state should appear on screen.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="1" data-sender="API Client" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-2)">TS</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-2)">API Client</span>
+        <p>I translate that action into an HTTP request to the Python backend.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="2" data-sender="FastAPI Route" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-3)">PY</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-3)">FastAPI Route</span>
+        <p>I validate inputs and choose the right backend helper.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="3" data-sender="Vision Module" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-4)">CV</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-4)">Vision Module</span>
+        <p>I handle images, models, face boxes, confidence, and recent recognition events.</p>
+      </div>
+    </div>
+    <div class="chat-message" data-msg="4" data-sender="Data Module" style="display:none">
+      <div class="chat-avatar" style="background: var(--color-actor-5)">DB</div>
+      <div class="chat-bubble">
+        <span class="chat-sender" style="color: var(--color-actor-5)">Data Module</span>
+        <p>I persist employees, attendance, leaves, and face sample folders.</p>
+      </div>
+    </div>
+  </div>
+  <div class="chat-typing" id="chat-integration-system-typing" style="display:none">
+    <div class="chat-avatar" id="chat-integration-system-typing-avatar">?</div>
+    <div class="chat-typing-dots">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+  </div>
+  <div class="chat-controls">
+    <button class="btn chat-next-btn">Next Message</button>
+    <button class="btn chat-all-btn">Play All</button>
+    <button class="btn chat-reset-btn">Replay</button>
+    <span class="chat-progress"></span>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-integration-1">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The frontend builds URLs from &lt;code&gt;NEXT_PUBLIC_CV_API_BASE_URL&lt;/code&gt; or the local fallback."
+       data-explanation-wrong="Connection failures often start at the base URL and CORS boundary.">
+    <h3 class="quiz-question">The frontend cannot reach the backend in development. What integration setting should you inspect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The employee table column order.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span><code>NEXT_PUBLIC_CV_API_BASE_URL</code> and the FastAPI server address.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The payroll daily rate only.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Exactly. Attendance writes must be server-side so refreshes and clients cannot duplicate records."
+       data-explanation-wrong="The frontend displays attendance, but the backend owns official writes.">
+    <h3 class="quiz-question">Which layer should own official attendance creation?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>CSS badge component.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Browser-only React state.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The backend data/vision path.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Correct. React should call the API; the server should own persistence."
+       data-explanation-wrong="This project has an API boundary for exactly that reason.">
+    <h3 class="quiz-question">When an AI assistant suggests writing directly to JSON from React, what should you say?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>No. Keep file writes behind FastAPI routes and <code>CV/data.py</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Yes. Browsers can safely edit server files.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Only if payroll is closed.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-integration-1')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-integration-1')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>

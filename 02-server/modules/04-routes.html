@@ -1,0 +1,154 @@
+<section class="module" id="module-4">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">Recognition And Attendance Routes</h1>
+      <p class="module-subtitle">The most important server route accepts one uploaded frame and returns both detections and new attendance rows.</p>
+    </header>
+
+    <div class="screen animate-in">
+      <h2 class="screen-heading">Routes are named doors into the backend</h2>
+      <p>Each route has a URL, a method, an input shape, and a response shape. Recognition routes accept uploaded files, while employee and leave routes use JSON bodies.</p>
+      <div class="badge-list animate-in">
+        <div class="badge-item"><code class="badge-code">GET /health</code><span class="badge-desc">Reports whether the model is ready and how many samples exist.</span></div>
+        <div class="badge-item"><code class="badge-code">POST /employees/{id}/enroll</code><span class="badge-desc">Accepts multiple enrollment frames for one employee.</span></div>
+        <div class="badge-item"><code class="badge-code">POST /recognition/frame</code><span class="badge-desc">Accepts one frame and returns detections plus created attendance.</span></div>
+        <div class="badge-item"><code class="badge-code">GET /attendance/today</code><span class="badge-desc">Builds today's dashboard rows from employees and attendance.</span></div>
+      </div>
+      <p>File references: <code>CV/server.py:213-278</code>, <code>CV/server.py:381-421</code>.</p>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Recognition is a file upload route</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">@app.post("/recognition/frame", response_model=RecognitionFrameResponse)
+async def recognize_frame(frame: UploadFile = File(...)) -&gt; dict:
+    frame_bytes = await frame.read()
+
+    try:
+        return vision.recognize_frame(app.state.vision_state, frame_bytes)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Register a POST route for one camera frame.</p>
+      <p class="tl">Tell FastAPI to expect a file field named <code>frame</code>.</p>
+      <p class="tl">Read the uploaded file bytes.</p>
+      <p class="tl">Pass those bytes into the vision layer with shared model state.</p>
+      <p class="tl">Turn invalid image data into a clear 400 response.</p>
+      <p class="tl">File reference: <code>CV/server.py:266-273</code>.</p>
+    </div>
+  </div>
+</div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Attendance is assembled from two sources</h2>
+      <div class="translation-block animate-in">
+  <div class="translation-code">
+    <span class="translation-label">CODE</span>
+    <pre><code class="language-python">attendance_by_employee = {
+    int(record["id"]): record
+    for record in data.list_attendance()
+    if record["date"] == date_value
+}</code></pre>
+  </div>
+  <div class="translation-english">
+    <span class="translation-label">PLAIN ENGLISH</span>
+    <div class="translation-lines">
+      <p class="tl">Build a quick lookup table from attendance rows.</p>
+      <p class="tl">Use employee ID as the lookup key.</p>
+      <p class="tl">Only include records for the requested date.</p>
+      <p class="tl">Then the route loops through employees and marks each present, late, or absent.</p>
+      <p class="tl">File reference: <code>CV/server.py:391-395</code>.</p>
+    </div>
+  </div>
+</div>
+      <div class="callout callout-accent">
+        <div class="callout-icon">API</div>
+        <div class="callout-content">
+          <strong class="callout-title">Why this route is useful</strong>
+          <p>The frontend does not need to join employees and attendance itself. The server returns ready-to-render dashboard rows.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <h2 class="screen-heading">Apply the idea</h2>
+      <div class="quiz-container animate-in" id="quiz-server-4">
+  <div class="quiz-question-block"
+       data-correct="b"
+       data-explanation-right="Correct. The route expects the uploaded file parameter named &lt;code&gt;frame&lt;/code&gt;."
+       data-explanation-wrong="File field names are part of the request contract.">
+    <h3 class="quiz-question">The frontend uploads a field named <code>photo</code> instead of <code>frame</code>. What happens?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The route automatically renames it.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>FastAPI cannot match it to <code>frame: UploadFile</code>.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Payroll totals double.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="a"
+       data-explanation-right="Exactly. The server can combine employees and attendance consistently in one response."
+       data-explanation-wrong="The dashboard route exists to return already combined rows.">
+    <h3 class="quiz-question">Why should dashboard status be computed on the server?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>It keeps the join between employee records and attendance records centralized.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because React cannot filter arrays.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>Because CSS tabs need Python.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-question-block"
+       data-correct="c"
+       data-explanation-right="Yes. &lt;code&gt;vision.recognize_frame&lt;/code&gt; raises &lt;code&gt;ValueError&lt;/code&gt;, and the route turns that into HTTP 400."
+       data-explanation-wrong="The route catches invalid image errors and returns a client-error response.">
+    <h3 class="quiz-question">Invalid JPEG bytes are uploaded. Which route behavior should you expect?</h3>
+    <div class="quiz-options">
+      <button class="quiz-option" data-value="a" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The server silently records attendance.</span>
+      </button>
+      <button class="quiz-option" data-value="b" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>The browser sidebar closes.</span>
+      </button>
+      <button class="quiz-option" data-value="c" onclick="selectOption(this)">
+        <div class="quiz-option-radio"></div>
+        <span>A 400 response with an error detail.</span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <button class="quiz-check-btn" onclick="checkQuiz('quiz-server-4')">Check Answers</button>
+  <button class="quiz-reset-btn" onclick="resetQuiz('quiz-server-4')">Try Again</button>
+</div>
+    </div>
+
+  </div>
+</section>
